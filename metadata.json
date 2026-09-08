@@ -1,0 +1,6 @@
+{
+  "name": "Deweg Engineering",
+  "description": "Editorial, high-performance portfolio and website for Deweg Engineering, inspired by Archipelago architectural design language.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
