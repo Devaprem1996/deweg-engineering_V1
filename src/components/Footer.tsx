@@ -1,5 +1,6 @@
 import { useState, useEffect, MouseEvent } from 'react';
-import { ArrowUp, Linkedin, Instagram, Facebook } from 'lucide-react';
+import { motion } from 'motion/react';
+import { ArrowUp } from 'lucide-react';
 import { COMPANY_DETAILS, SERVICES_DATA } from '../data/engineeringData';
 import DewegLogo from './DewegLogo';
 
@@ -7,16 +8,14 @@ interface FooterProps {
   onNavigate?: (page: 'home' | 'about' | 'expertise', targetSection?: string) => void;
 }
 
+const EASE = [0.16, 1, 0.3, 1] as const;
+
 export default function Footer({ onNavigate }: FooterProps) {
   const [showBackToTop, setShowBackToTop] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 400) {
-        setShowBackToTop(true);
-      } else {
-        setShowBackToTop(false);
-      }
+      setShowBackToTop(window.scrollY > 400);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
@@ -27,99 +26,93 @@ export default function Footer({ onNavigate }: FooterProps) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const quickLinks = [
-    { label: 'About Deweg Engineering', page: 'about' as const, href: '#about-page' },
-    { label: 'Domain We Expertise', page: 'expertise' as const, href: '#expertise-page' },
-    { label: 'Engineering Reel', page: 'home' as const, href: '#engineering-reel' },
-    { label: 'Selected Engagements', page: 'home' as const, href: '#projects' },
-    { label: 'Field Execution', page: 'home' as const, href: '#field-execution' },
-    { label: 'Key Technical Leadership', page: 'home' as const, href: '#team' },
-    { label: 'Client Endorsements', page: 'home' as const, href: '#testimonials' },
-    { label: 'Commence Collaboration', page: 'home' as const, href: '#contact' },
+  const navItems = [
+    { index: '01', label: 'About the Practice', page: 'about' as const, href: '#about-page' },
+    { index: '02', label: 'Domains of Expertise', page: 'expertise' as const, href: '#expertise-page' },
+    { index: '03', label: 'Selected Engagements', page: 'home' as const, href: '#projects' },
+    { index: '04', label: 'Field Execution', page: 'home' as const, href: '#field-execution' },
+    { index: '05', label: 'Technical Leadership', page: 'home' as const, href: '#team' },
+    { index: '06', label: 'Commence Engagement', page: 'home' as const, href: '#contact' }
   ];
 
-  const handleLinkClick = (e: MouseEvent<HTMLAnchorElement>, item: { page: 'home' | 'about' | 'expertise'; href: string }) => {
+  const handleLinkClick = (
+    e: MouseEvent<HTMLAnchorElement>,
+    item: { page: 'home' | 'about' | 'expertise'; href: string }
+  ) => {
     if (onNavigate) {
       e.preventDefault();
       onNavigate(item.page, item.href);
     }
   };
 
+  const socials = [
+    { label: 'LinkedIn', href: COMPANY_DETAILS.social.linkedin },
+    { label: 'Instagram', href: COMPANY_DETAILS.social.instagram },
+    { label: 'Facebook', href: COMPANY_DETAILS.social.facebook }
+  ];
+
   return (
-    <footer id="footer" className="relative bg-[#FAF7F2] text-[#1C1917] border-t border-[#DDD6CC] pt-20 pb-12">
-      <div className="max-w-7xl mx-auto px-6 md:px-12">
-        
-        {/* Main Footer Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-12 pb-14 border-b border-[#DDD6CC]">
-          
-          {/* Column 1: Brand & Identity (4 cols) */}
-          <div className="lg:col-span-4 space-y-5">
-            <a href="#" aria-label="Deweg Engineering Home" className="inline-block">
-              <DewegLogo className="h-9 w-auto" variant="full" />
-            </a>
-
-            <p className="text-sm text-[#57534E] font-sans font-normal leading-relaxed max-w-sm">
-              An architectural and industrial engineering practice dedicated to rigorous structural calculation, resilient foundation systems, and innovative built delivery.
+    <footer
+      id="footer"
+      className="relative bg-[#EFEDE6] text-[#121210] border-t border-[#DDD9CE]"
+    >
+<div className="max-w-[1600px] mx-auto px-[6vw] lg:px-[7vw]">
+        {/* ZONE 1 · Architectural information grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-x-8 gap-y-12 py-16">
+          {/* Cols 1–4: Practice statement */}
+          <div className="lg:col-span-4">
+            <DewegLogo className="h-9 w-auto" variant="full" />
+            <p className="mt-6 max-w-xs font-sans text-[1rem] leading-[1.6] text-[#444440]">
+              An engineering practice defined by load-path clarity, code compliance, and
+              BIM-ready execution — from first intent to audited, construction-ready
+              documentation.
             </p>
-
-            {/* Social Icons */}
-            <div className="pt-2 flex items-center gap-3">
-              <a
-                href={COMPANY_DETAILS.social.linkedin}
-                target="_blank"
-                rel="noreferrer"
-                className="w-9 h-9 rounded-full border border-[#DDD6CC] bg-white flex items-center justify-center text-[#57534E] hover:text-[#EDA81C] hover:border-[#EDA81C] transition-all shadow-xs"
-                aria-label="Deweg Engineering on LinkedIn"
-              >
-                <Linkedin className="w-4 h-4" />
-              </a>
-              <a
-                href={COMPANY_DETAILS.social.instagram}
-                target="_blank"
-                rel="noreferrer"
-                className="w-9 h-9 rounded-full border border-[#DDD6CC] bg-white flex items-center justify-center text-[#57534E] hover:text-[#EDA81C] hover:border-[#EDA81C] transition-all shadow-xs"
-                aria-label="Deweg Engineering on Instagram"
-              >
-                <Instagram className="w-4 h-4" />
-              </a>
-              <a
-                href={COMPANY_DETAILS.social.facebook}
-                target="_blank"
-                rel="noreferrer"
-                className="w-9 h-9 rounded-full border border-[#DDD6CC] bg-white flex items-center justify-center text-[#57534E] hover:text-[#EDA81C] hover:border-[#EDA81C] transition-all shadow-xs"
-                aria-label="Deweg Engineering on Facebook"
-              >
-                <Facebook className="w-4 h-4" />
-              </a>
+            <div className="mt-7 flex flex-wrap items-center gap-x-2 gap-y-2 font-sans text-[14px] font-normal text-[#222220]">
+              {socials.map((social, i) => (
+                <span key={social.label} className="inline-flex items-center gap-2">
+                  {i > 0 && <span className="text-[#B9B5A8]">·</span>}
+                  <a
+                    href={social.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 transition-colors duration-200 hover:text-black"
+                  >
+                    {social.label} <span aria-hidden="true" className="text-[#78766F]">↗</span>
+                  </a>
+                </span>
+              ))}
             </div>
           </div>
 
-          {/* Column 2: Navigation (2 cols) */}
-          <div className="lg:col-span-2 space-y-4">
-            <h4 className="text-xs uppercase tracking-[0.25em] text-[#EDA81C] font-sans font-bold">
-              Navigation
+          {/* Cols 5–6: Navigation */}
+          <div className="lg:col-span-2">
+            <h4 className="font-mono text-[11px] uppercase tracking-[0.12em] text-[#88857B]">
+              01 / Navigation
             </h4>
-            <ul className="space-y-2.5 text-sm font-sans font-normal text-[#57534E]">
-              {quickLinks.map((item) => (
-                <li key={item.label}>
+            <ul className="mt-5 space-y-2">
+              {navItems.map((item) => (
+                <li key={item.index}>
                   <a
                     href={item.href}
                     onClick={(e) => handleLinkClick(e, item)}
-                    className="hover:text-[#EDA81C] transition-colors"
+                    className="group inline-flex items-baseline gap-3 font-sans text-[14px] text-[#222220] transition-all duration-200 hover:text-black hover:translate-x-1"
                   >
-                    {item.label}
+                    <span className="font-mono text-[10px] tracking-[0.1em] text-[#A8A49B] group-hover:text-[#88857B]">
+                      {item.index}
+                    </span>
+                    <span>{item.label}</span>
                   </a>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Column 3: 7 Domains (3 cols) */}
-          <div className="lg:col-span-3 space-y-4">
-            <h4 className="text-xs uppercase tracking-[0.25em] text-[#EDA81C] font-sans font-bold">
-              7 Domains
+          {/* Cols 7–9: 7 Engineering Domains */}
+          <div className="lg:col-span-3">
+            <h4 className="font-mono text-[11px] uppercase tracking-[0.12em] text-[#88857B]">
+              02 / Specialist Domains
             </h4>
-            <ul className="space-y-2 text-xs font-sans font-normal text-[#57534E]">
+            <ul className="mt-5 grid grid-cols-1 gap-x-6 gap-y-2">
               {SERVICES_DATA.map((srv) => (
                 <li key={srv.id}>
                   <a
@@ -130,61 +123,103 @@ export default function Footer({ onNavigate }: FooterProps) {
                         onNavigate('expertise', `#${srv.id}`);
                       }
                     }}
-                    className="hover:text-[#EDA81C] transition-colors flex items-center gap-2 cursor-pointer"
+                    className="group inline-flex items-baseline gap-3 font-sans text-[14px] text-[#222220] transition-all duration-200 hover:text-black hover:translate-x-1 cursor-pointer"
                   >
-                    <span className="text-[10px] font-mono text-[#EDA81C] font-semibold">{srv.number}</span>
-                    <span className="truncate">{srv.title}</span>
+                    <span className="font-mono text-[10px] tracking-[0.1em] text-[#A8A49B] group-hover:text-[#88857B]">
+                      {srv.number}
+                    </span>
+                    <span>{srv.title}</span>
                   </a>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Column 4: Contact Info (3 cols) */}
-          <div className="lg:col-span-3 space-y-4">
-            <h4 className="text-xs uppercase tracking-[0.25em] text-[#EDA81C] font-sans font-bold">
-              Registered Office
+          {/* Cols 10–12: Registered office & direct lines */}
+          <div className="lg:col-span-3">
+            <h4 className="font-mono text-[11px] uppercase tracking-[0.12em] text-[#88857B]">
+              03 / Correspondence
             </h4>
-            <div className="space-y-2.5 text-sm font-sans font-normal text-[#57534E] leading-relaxed">
-              <p className="text-[#1C1917] font-medium text-xs">{COMPANY_DETAILS.address}</p>
-              <p className="text-[11px] font-mono text-[#78716C]">CIN: {COMPANY_DETAILS.cin}</p>
-              <div className="pt-2 text-xs space-y-1">
-                <p><span className="font-semibold text-[#1C1917]">Desk:</span> {COMPANY_DETAILS.phone}</p>
-                <p><span className="font-semibold text-[#1C1917]">Mobile:</span> {COMPANY_DETAILS.mobile}</p>
-                <p><span className="font-semibold text-[#1C1917]">Email:</span> {COMPANY_DETAILS.email}</p>
+            <div className="mt-5 space-y-4 font-sans text-[14px] leading-[1.6] text-[#444440]">
+              <p className="max-w-[300px]">{COMPANY_DETAILS.address}</p>
+              <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-[#A8A49B]">
+                CIN {COMPANY_DETAILS.cin}
+              </p>
+              <div className="space-y-1.5">
+                <a
+                  href={`tel:${COMPANY_DETAILS.phone}`}
+                  className="block w-fit text-[#222220] transition-colors duration-200 hover:text-black"
+                >
+                  {COMPANY_DETAILS.phone}
+                </a>
+                <a
+                  href={`tel:${COMPANY_DETAILS.mobile}`}
+                  className="block w-fit text-[#222220] transition-colors duration-200 hover:text-black"
+                >
+                  {COMPANY_DETAILS.mobile}
+                </a>
+                <a
+                  href={`mailto:${COMPANY_DETAILS.email}`}
+                  className="block w-fit text-[#222220] transition-colors duration-200 hover:text-black"
+                >
+                  {COMPANY_DETAILS.email}
+                </a>
               </div>
             </div>
           </div>
-
         </div>
-
-        {/* Bottom Bar */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-sans text-[#78716C]">
-          <p>© 2025 De Weg Engineering Private Limited. All rights reserved.</p>
-          <div className="flex items-center gap-6">
-            <a href="#about" className="hover:text-[#EDA81C] transition-colors">
-              ISO & Code Compliance
-            </a>
-            <span>•</span>
-            <a href="#contact" className="hover:text-[#EDA81C] transition-colors">
-              Confidentiality & NDA
-            </a>
-            <span>•</span>
-            <a href="#contact" className="hover:text-[#EDA81C] transition-colors">
-              Statutory Disclosures
-            </a>
-          </div>
-        </div>
-
       </div>
 
-      {/* Back to Top Button */}
+      {/* ZONE 2 · Cinematic monumental wordmark */}
+      <div className="relative overflow-hidden bg-[#EBE8DF] border-t border-[#DDD9CE] select-none">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.985, y: 24 }}
+          whileInView={{ opacity: 1, scale: 1, y: 16 }}
+          viewport={{ once: true, amount: 0.6 }}
+          transition={{ duration: 1.2, ease: EASE }}
+          className="flex flex-col items-center justify-end pt-8 pb-10"
+        >
+          <span className="block font-sans font-semibold uppercase tracking-[-0.02em] leading-[0.82] whitespace-nowrap text-[#181816] text-[clamp(4rem,16.5vw,280px)]">
+            De Weg
+          </span>
+          <span className="mt-6 block font-sans font-medium uppercase whitespace-nowrap text-[#78766F] tracking-[0.6em] text-[clamp(0.8rem,1.8vw,1.4rem)]">
+            Engineering
+          </span>
+        </motion.div>
+      </div>
+
+      {/* ZONE 3 · Legal bar */}
+      <div className="border-t border-[#DDD9CE]">
+        <div className="max-w-[1600px] mx-auto px-[6vw] lg:px-[7vw] py-6 flex flex-col md:flex-row items-center justify-between gap-4 font-mono text-[11px] uppercase tracking-[0.14em] text-[#78766F]">
+          <p>© {new Date().getFullYear()} De Weg Engineering Pvt. Ltd.</p>
+          <div className="flex items-center gap-5">
+            <a href="#expertise-page" onClick={(e) => { e.preventDefault(); onNavigate?.('expertise', '#pmc'); }} className="hover:text-black transition-colors duration-200">
+              ISO Compliance
+            </a>
+            <a href="#contact" onClick={(e) => handleLinkClick(e, { page: 'home', href: '#contact' })} className="hover:text-black transition-colors duration-200">
+              Privacy &amp; NDA
+            </a>
+            <a href="#footer" className="hover:text-black transition-colors duration-200">
+              Terms
+            </a>
+          </div>
+          <button
+            type="button"
+            onClick={scrollToTop}
+            className="inline-flex items-center gap-2 uppercase tracking-[0.14em] hover:text-black transition-colors duration-200 cursor-pointer"
+          >
+            ↑ Top
+          </button>
+        </div>
+      </div>
+
+      {/* Back to top — floating */}
       {showBackToTop && (
         <button
           type="button"
           id="back-to-top-btn"
           onClick={scrollToTop}
-          className="fixed bottom-8 right-8 z-40 p-3 rounded-full bg-white border border-[#DDD6CC] text-[#1C1917] hover:bg-[#EDA81C] hover:text-white hover:border-[#EDA81C] transition-all duration-300 shadow-xl flex items-center justify-center group"
+          className="fixed bottom-8 right-8 z-40 p-3 rounded-full bg-white border border-[#DDD9CE] text-[#121210] hover:bg-[#C98A2D] hover:text-white hover:border-[#C98A2D] transition-all duration-300 shadow-xl flex items-center justify-center group"
           aria-label="Back to Top"
         >
           <ArrowUp className="w-4 h-4 transition-transform duration-300 group-hover:-translate-y-0.5" />

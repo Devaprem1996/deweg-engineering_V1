@@ -57,7 +57,7 @@ export default function CustomCursor() {
     <div className="pointer-events-none fixed inset-0 z-[9999] overflow-hidden">
       {/* Outer ring cursor */}
       <motion.div
-        className="fixed top-0 left-0 rounded-full border border-[#C4703F]/70"
+        className="fixed top-0 left-0 rounded-full border border-[#EDA81C]/70"
         animate={{
           x: mousePosition.x - (isHovered ? 24 : 16),
           y: mousePosition.y - (isHovered ? 24 : 16),
@@ -74,7 +74,7 @@ export default function CustomCursor() {
       />
       {/* Central pinpoint dot */}
       <motion.div
-        className="fixed top-0 left-0 w-1.5 h-1.5 rounded-full bg-[#C4703F]"
+        className="fixed top-0 left-0 w-1.5 h-1.5 rounded-full bg-[#EDA81C]"
         animate={{
           x: mousePosition.x - 3,
           y: mousePosition.y - 3,

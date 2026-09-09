@@ -12,8 +12,6 @@ import Hero from './components/Hero';
 import AboutIntro from './components/AboutIntro';
 import AboutPage from './components/AboutPage';
 import ExpertisePage from './components/ExpertisePage';
-import ServicesSection from './components/ServicesSection';
-import EngineeringReelSection from './components/EngineeringReelSection';
 import PortfolioSection from './components/PortfolioSection';
 import FieldExecutionSection from './components/FieldExecutionSection';
 import StatsBanner from './components/StatsBanner';
@@ -30,6 +28,18 @@ export default function App() {
   const [isPreloaderDone, setIsPreloaderDone] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [expertiseTargetId, setExpertiseTargetId] = useState<string | undefined>(undefined);
+
+  // Services ids (footer domain list) -> expertise chapter ids (sidebar / chapters)
+  const serviceToDomainId: Record<string, string> = {
+    pmc: 'project-management',
+    sde: 'structural-design',
+    bim: 'bim-solutions',
+    sme: 'structural-steel',
+    oge: 'oil-and-gas',
+    mep: 'mep-design',
+    it: 'information-technology'
+  };
 
   // Synchronize with URL hash for persistent page state and bookmarking
   useEffect(() => {
@@ -72,6 +82,9 @@ export default function App() {
       smoothWheel: true,
     });
 
+    // Expose so components (TOC index) can route nav through Lenis for clean offsets
+    (window as unknown as { __lenis: Lenis }).__lenis = lenis;
+
     let rafId: number;
 
     function raf(time: number) {
@@ -94,6 +107,10 @@ export default function App() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else if (page === 'expertise') {
       window.location.hash = '#expertise-page';
+      const targetId = targetSection && targetSection.startsWith('#')
+        ? serviceToDomainId[targetSection.slice(1)]
+        : undefined;
+      setExpertiseTargetId(targetId);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       if (targetSection && targetSection.startsWith('#')) {
@@ -111,15 +128,8 @@ export default function App() {
     }
   };
 
-  const handleExploreClick = () => {
-    const el = document.getElementById('projects');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   return (
-    <div className="relative min-h-screen bg-[#FBF9F5] text-[#0C0A09] selection:bg-[#C4703F]/20 selection:text-[#0C0A09] overflow-x-hidden">
+    <div className="relative min-h-screen bg-[#FBF9F5] text-[#0C0A09] selection:bg-[#EDA81C]/25 selection:text-[#0C0A09] overflow-x-clip">
       {/* Ambient Architectural Atmosphere Behind Glassmorphic Panels */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute -top-[15%] -left-[10%] w-[55vw] h-[55vw] rounded-full bg-gradient-to-br from-[#F5EDE1]/70 via-[#F3E6D7]/40 to-transparent blur-3xl opacity-80" />
@@ -154,27 +164,21 @@ export default function App() {
           <ExpertisePage
             onNavigateHome={() => handleNavigate('home')}
             onNavigateToContact={() => handleNavigate('home', '#contact')}
+            initialDomainId={expertiseTargetId}
+            initialScrollId={expertiseTargetId}
           />
         </main>
       ) : (
         /* Main Single-Page Sections matching deweg-engineering.com */
         <main id="main-content">
-          {/* Section 01: Concept to Creation / Full-Page Creative Hero Section */}
+          {/* Section 01: European Minimal Creative Hero */}
           <Hero
-            onExploreClick={handleExploreClick}
-            onNavigateToExpertise={() => handleNavigate('expertise')}
-            onNavigateToPortfolio={() => handleNavigate('home', '#projects')}
+            introReady={isPreloaderDone}
             onNavigateToContact={() => handleNavigate('home', '#contact')}
           />
 
           {/* Section 04: "To Define The Path" / Practice Philosophy */}
-          <AboutIntro
-            onViewAboutPage={() => handleNavigate('about')}
-            onViewExpertisePage={() => handleNavigate('expertise')}
-          />
-
-          {/* Section 03: Engineering in Motion / Live Video Showcase Reel */}
-          <EngineeringReelSection />
+          <AboutIntro />
 
           {/* Selected Engagements / Portfolio */}
           <PortfolioSection onSelectProject={(project) => setSelectedProject(project)} />

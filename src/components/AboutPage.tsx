@@ -76,17 +76,17 @@ export default function AboutPage({
             className="lg:col-span-7 space-y-6"
           >
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#EDA81C]" />
-              <span className="text-xs uppercase tracking-[0.25em] font-sans font-bold text-[#EDA81C]">
+              <span className="w-6 h-[2px] bg-[#E5E3DC]" />
+              <span className="text-[11px] font-mono uppercase tracking-[0.28em] text-[#8A8580]">
                 {ABOUT_PAGE_CONTENT.badge}
               </span>
             </div>
 
-            <h1 className="font-serif text-3xl sm:text-5xl md:text-6xl text-[#0C0A09] font-bold tracking-tight leading-[1.12]">
+            <h1 className="font-sans text-3xl sm:text-5xl md:text-6xl text-[#0C0A09] font-bold tracking-[-0.02em] leading-[1.05]">
               Defining the Path to Build Better
             </h1>
 
-            <p className="font-serif text-lg sm:text-xl text-[#EDA81C] italic font-semibold">
+            <p className="font-sans text-lg sm:text-xl text-[#EDA81C] italic font-semibold">
               "{ABOUT_PAGE_CONTENT.tagline}"
             </p>
 
@@ -237,7 +237,7 @@ export default function AboutPage({
       {/* 3. VISION & MISSION: Architectural Dual Cards */}
       <section className="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28">
         <div className="text-center max-w-2xl mx-auto mb-14">
-          <span className="text-xs uppercase tracking-[0.25em] font-sans font-bold text-[#EDA81C]">
+          <span className="text-[11px] font-mono uppercase tracking-[0.28em] text-[#8A8580]">
             PURPOSE & DIRECTION
           </span>
           <h2 className="font-serif text-3xl sm:text-4xl text-[#0C0A09] font-bold tracking-tight mt-2">
@@ -330,7 +330,7 @@ export default function AboutPage({
           <div className="max-w-3xl mb-14">
             <div className="flex items-center gap-2 mb-2">
               <span className="w-2 h-2 rounded-full bg-[#EDA81C]" />
-              <span className="text-xs uppercase tracking-[0.25em] font-sans font-bold text-[#EDA81C]">
+              <span className="text-[11px] font-mono uppercase tracking-[0.28em] text-[#8A8580]">
                 ILLUSTRIOUS TEAM
               </span>
             </div>
@@ -427,7 +427,7 @@ export default function AboutPage({
             <div className="lg:col-span-5 space-y-4">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-[#EDA81C]" />
-                <span className="text-xs uppercase tracking-[0.25em] font-sans font-bold text-[#EDA81C]">
+                <span className="text-[11px] font-mono uppercase tracking-[0.28em] text-[#8A8580]">
                   PEOPLE & PASSION
                 </span>
               </div>
@@ -477,7 +477,7 @@ export default function AboutPage({
       <section className="py-20 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="text-center max-w-xl mx-auto mb-14">
-            <span className="text-xs uppercase tracking-[0.25em] font-sans font-bold text-[#EDA81C]">
+            <span className="text-[11px] font-mono uppercase tracking-[0.28em] text-[#8A8580]">
               CHRONOLOGY OF EXCELLENCE
             </span>
             <h2 className="font-serif text-3xl sm:text-4xl text-[#0C0A09] font-bold tracking-tight mt-2">
@@ -525,7 +525,7 @@ export default function AboutPage({
             {onNavigateToServices && (
               <button
                 onClick={onNavigateToServices}
-                className="px-5 py-3 rounded-lg bg-[#EDA81C] hover:bg-[#D49110] text-white text-xs font-sans font-semibold uppercase tracking-wider transition-colors shadow-sm"
+                className="px-5 py-3 rounded-lg bg-[#EDA81C] hover:bg-[#D49110] text-[#0C0A09] text-xs font-sans font-semibold uppercase tracking-wider transition-colors shadow-sm"
               >
                 Explore 7 Disciplines
               </button>

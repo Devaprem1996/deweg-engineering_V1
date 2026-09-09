@@ -18,9 +18,6 @@ export const OFFICIAL_ASSETS = {
   // On-Site Heavy Steel Truss Assembly Photography from Deweg Engineering
   structuralErectionImg: 'https://static.wixstatic.com/media/7b7d72_312674e4c96541f99c9c3e98fc66b2fe~mv2.jpg',
 
-  // Heavy Structural Assembly Video Reel (4D Construction Erection Simulation 1080p)
-  structuralErectionReel: 'https://video.wixstatic.com/video/5080f1_9d5a50b68d2d46b58a50515d596842cb/1080p/mp4/file.mp4',
-
   // Official Domain SVG Vector Shapes from Wix
   domainIcons: {
     pmc: 'https://static.wixstatic.com/shapes/5080f1_a21eb356bcf24df2bdf44129342d2df7.svg',
@@ -52,6 +49,18 @@ export const OFFICIAL_ASSETS = {
   },
   referenceGifs: {
     ogeTankModel: 'https://static.wixstatic.com/media/5080f1_163f6aa3a5a3408c95273f97b549fc8c~mv2.gif'
+  },
+
+  // Editorial Media Library — distinct engineering visuals used to avoid
+  // repeating the same Wix asset across multiple sections of the site.
+  mediaLibrary: {
+    industrialPlant: 'https://images.unsplash.com/photo-1466611653911-95081537e5b7?auto=format&fit=crop&w=1400&q=80',
+    onSiteAssembly: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&w=1400&q=80',
+    steelTrussShop: 'https://images.unsplash.com/photo-1429497419816-9ca5cfb4571a?auto=format&fit=crop&w=1400&q=80',
+    craneErection: 'https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?auto=format&fit=crop&w=1400&q=80',
+    blueprintDetail: 'https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1400&q=80',
+    digitalBimTwin: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=1400&q=80',
+    heroSitePhoto: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=2000&q=80'
   }
 };
 
@@ -113,31 +122,31 @@ export const CORE_PRINCIPLES = [
   {
     number: '01',
     title: 'Load Path Clarity',
-    statement: 'Load path clarity, with openness and honesty in business.',
+    statement: 'Openness, mathematical rigor, and structural honesty in every calculation.',
     description: 'Every structural transfer is mapped with absolute analytical transparency, verified against international building standards.'
   },
   {
     number: '02',
     title: 'Code Compliance',
-    statement: 'Code compliance at the detail level, and buildability feedback integration.',
+    statement: 'Detail-level statutory adherence integrated with real-time buildability feedback.',
     description: 'Meticulous alignment with regional and global engineering codes (IS, Eurocode, ASCE, AISC, API) with direct contractor buildability inputs.'
   },
   {
     number: '03',
     title: 'BIM-Ready Outputs',
-    statement: 'BIM-ready outputs when required, backed by a history of quality delivery.',
+    statement: 'Rich parametric modeling backed by a history of precision engineering delivery.',
     description: 'LOD 300 to LOD 500 digital twins, parametric models, and collision-free coordination workflows across multi-disciplinary teams.'
   },
   {
     number: '04',
-    title: 'Version-Controlled Workflows',
-    statement: 'Version-controlled workflows, offering innovative solutions to complex projects.',
+    title: 'Version Control',
+    statement: 'Rigorous revision workflows built to solve complex, multi-phase projects.',
     description: 'Rigorous engineering change management that prevents design drift and delivers verifiable calculation histories.'
   },
   {
     number: '05',
-    title: 'Error-Proof Review Systems',
-    statement: 'Error-proof review systems, using cutting-edge technologies and tools.',
+    title: 'Error-Proof Review',
+    statement: 'Algorithmic verification systems utilizing advanced auditing tech.',
     description: 'Multi-tiered structural peer auditing, automated clash detections, and finite element validation prior to execution issuance.'
   }
 ];
@@ -555,7 +564,7 @@ export const PROJECTS_DATA: Project[] = [
     year: '2024',
     location: 'Coastal Refinery Zone, India',
     client: 'Industrial Energy Group',
-    image: OFFICIAL_ASSETS.section1DrawingImg,
+    image: OFFICIAL_ASSETS.mediaLibrary.industrialPlant,
     summary: 'Turnkey structural and pipe rack engineering for heavy petrochemical process units with high-temperature thermal dissipation.',
     fullDescription: 'Deweg Engineering delivered the complete structural analysis, heavy steel pipe rack arrays, and foundation design for a coastal process facility. The engineering integrated blast-resistant control room calculations, dynamic seismic response, and vibration isolation for centrifugal pumps.',
     keyStats: [
@@ -572,7 +581,7 @@ export const PROJECTS_DATA: Project[] = [
     year: '2024',
     location: 'Industrial Corridor, Chennai',
     client: 'Major Infrastructure Developer',
-    image: OFFICIAL_ASSETS.section5ExecutionImg,
+    image: OFFICIAL_ASSETS.mediaLibrary.onSiteAssembly,
     summary: 'Direct field execution, high-bay structural erection, and micro-tolerance steel joint detailing photographed on-site.',
     fullDescription: 'Photographed during live field assembly, this heavy engineering engagement required zero-tolerance shop detailing in Tekla Structures, ultrasonic weld inspection oversight, and multi-tier erection sequencing for deep industrial clear spans.',
     keyStats: [
@@ -589,7 +598,7 @@ export const PROJECTS_DATA: Project[] = [
     year: '2023',
     location: 'Manufacturing Corridor, Tamil Nadu',
     client: 'Apex Industrial Dynamics',
-    image: OFFICIAL_ASSETS.structuralErectionImg,
+    image: OFFICIAL_ASSETS.mediaLibrary.steelTrussShop,
     summary: 'Long-span steel trusses and high-load portal frames engineered for overhead crane operations.',
     fullDescription: 'Engineered to support heavy gantry cranes up to 80 tonnes, this facility combined parametric column base plates, moment-resisting connections, and vibration absorption calculations.',
     keyStats: [
@@ -669,7 +678,7 @@ export const STATS_DATA: StatItem[] = [
 export const TESTIMONIALS_DATA: Testimonial[] = [
   {
     id: 'test-1',
-    quote: 'Deweg Engineering brings an uncompromising analytical precision to high-stakes industrial framing. Their connection detailing and BIM workflows eliminated site fabrication clashes completely.',
+    quote: 'Their Tekla connection detailing eliminated every site fabrication clash across our industrial framing package — zero rework orders issued.',
     clientName: 'Senior Project Director',
     clientRole: 'Head of Industrial Projects',
     company: 'Apex Industrial Dynamics',
@@ -677,7 +686,7 @@ export const TESTIMONIALS_DATA: Testimonial[] = [
   },
   {
     id: 'test-2',
-    quote: 'From load path clarity to error-proof peer reviews, Deweg defines the standard for structural consultants. Their response time and technical mastery make them our go-to partner.',
+    quote: 'From load-path clarity to error-proof peer review, De Weg became our trusted structural partner. Their response time and technical mastery set the standard on our commercial high-rise framework.',
     clientName: 'Julian Sterling',
     clientRole: 'Principal Infrastructure Lead',
     company: 'Sterling & Morath Associates',
@@ -685,7 +694,7 @@ export const TESTIMONIALS_DATA: Testimonial[] = [
   },
   {
     id: 'test-3',
-    quote: 'Their deep knowledge of API and process piping civil interfaces on our energy facility ensured our statutory approvals sailed through without a single query.',
+    quote: 'Their deep knowledge of API and process piping civil interfaces ensured our statutory approvals sailed through without a single query.',
     clientName: 'Chief Operating Engineer',
     clientRole: 'Petrochemical Infrastructure',
     company: 'Coastal Energy Group',

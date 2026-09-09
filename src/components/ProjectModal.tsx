@@ -1,5 +1,6 @@
+import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Calendar, MapPin, Building, Check, ArrowRight } from 'lucide-react';
+import { X, ArrowRight } from 'lucide-react';
 import { Project } from '../types';
 
 interface ProjectModalProps {
@@ -7,140 +8,218 @@ interface ProjectModalProps {
   onClose: () => void;
 }
 
+const containerVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }
+  }
+};
+
 export default function ProjectModal({ project, onClose }: ProjectModalProps) {
-  if (!project) return null;
+  useEffect(() => {
+    if (!project) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prev;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [project, onClose]);
+
+  const handleDiscuss = () => {
+    onClose();
+    document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10 overflow-y-auto">
-        {/* Backdrop blur with soft warm tone */}
+    <AnimatePresence mode="wait">
+      {project && (
         <motion.div
+          key={project.id}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="fixed inset-0 bg-[#292524]/50 backdrop-blur-sm"
-        />
-
-        {/* Modal Window in Warm Light Architectural Style */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96, y: 15 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: 15 }}
-          transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-          className="relative w-full max-w-4xl bg-white rounded-2xl border border-[#E7E1D8] text-[#1C1917] z-10 shadow-2xl overflow-hidden my-auto max-h-[90vh] flex flex-col"
+          transition={{ duration: 0.35, ease: 'easeOut' }}
+          className="fixed inset-0 z-[11000] flex items-center justify-center p-4 sm:p-8 overflow-y-auto"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Project dossier — ${project.title}`}
         >
-          {/* Header Bar */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-[#E7E1D8] bg-[#F5F0E8]">
-            <div className="flex items-center gap-3">
-              <span className="text-[11px] uppercase tracking-[0.25em] text-[#C4703F] font-sans font-bold">
-                Project Dossier • {project.category}
+          {/* Warm blurred backdrop */}
+          <motion.div
+            key="backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            onClick={onClose}
+            className="fixed inset-0 bg-[#292524]/45 backdrop-blur-sm"
+          />
+
+          {/* Editorial broadsheet panel */}
+          <motion.div
+            key="panel"
+            initial={{ opacity: 0, y: 28, scale: 0.985 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 18, scale: 0.985 }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            className="relative w-full max-w-3xl bg-[#FBFAF7] text-[#111111] z-10 rounded-[4px] border border-black/10 shadow-2xl my-auto max-h-[90vh] flex flex-col"
+          >
+            {/* Header bar */}
+            <div className="flex items-center justify-between px-6 sm:px-8 py-4 border-b border-black/10">
+              <span className="text-[11px] font-mono uppercase tracking-[0.28em] text-[#8A8580]">
+                Project Dossier
               </span>
-            </div>
-            <button
-              onClick={onClose}
-              className="p-1.5 rounded-full text-[#78716C] hover:text-[#1C1917] hover:bg-[#EAE4D9] transition-colors"
-              aria-label="Close modal"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          {/* Scrollable Modal Content */}
-          <div className="p-6 sm:p-10 overflow-y-auto space-y-7">
-            {/* Title & Metadata */}
-            <div>
-              <h2 className="font-serif text-3xl sm:text-4xl text-[#1C1917] tracking-tight">
-                {project.title}
-              </h2>
-
-              <div className="mt-3 flex flex-wrap items-center gap-4 sm:gap-6 text-xs text-[#57534E] font-sans">
-                <div className="flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5 text-[#C4703F]" />
-                  <span>Completion: {project.year}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-[#C4703F]" />
-                  <span>{project.location}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Building className="w-3.5 h-3.5 text-[#C4703F]" />
-                  <span>Client: {project.client}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Hero Project Image */}
-            <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden border border-[#E7E1D8] shadow-sm">
-              <img
-                src={project.image}
-                alt={project.title}
-                className="w-full h-full object-cover filter contrast-[1.05]"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-
-            {/* Key Metrics Grid */}
-            <div className="grid grid-cols-3 gap-4 p-5 rounded-xl bg-[#F5F0E8] border border-[#E7E1D8]">
-              {project.keyStats.map((stat, i) => (
-                <div key={i} className="text-center">
-                  <div className="text-xs uppercase tracking-wider text-[#78716C] font-sans font-semibold">
-                    {stat.label}
-                  </div>
-                  <div className="font-serif text-xl sm:text-2xl text-[#C4703F] font-bold mt-1">
-                    {stat.value}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Detailed Description */}
-            <div className="space-y-3">
-              <h3 className="font-serif text-xl text-[#1C1917] font-semibold">Engineering Scope & Solution</h3>
-              <p className="text-sm sm:text-base text-[#57534E] font-sans font-normal leading-[1.8]">
-                {project.fullDescription}
-              </p>
-            </div>
-
-            {/* Disciplines Employed */}
-            <div>
-              <h4 className="text-xs uppercase tracking-[0.2em] text-[#C4703F] font-sans font-bold mb-3">
-                Disciplines & Technical Methods
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {project.disciplines.map((d, i) => (
-                  <span
-                    key={i}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#F5F0E8] border border-[#E7E1D8] rounded-md text-xs text-[#1C1917] font-medium"
-                  >
-                    <Check className="w-3 h-3 text-[#C4703F]" />
-                    <span>{d}</span>
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Footer Action */}
-            <div className="pt-6 border-t border-[#E7E1D8] flex items-center justify-between flex-wrap gap-4">
-              <a
-                href="#contact"
-                onClick={onClose}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-[#C4703F] text-white text-xs uppercase tracking-wider font-semibold rounded-lg hover:bg-[#A65A2E] transition-colors shadow-sm"
-              >
-                <span>Discuss Similar Engineering Challenge</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </a>
               <button
                 onClick={onClose}
-                className="text-xs uppercase tracking-wider text-[#78716C] hover:text-[#1C1917] transition-colors"
+                aria-label="Close dossier"
+                className="p-1.5 -mr-1.5 text-[#888888] hover:text-[#111111] transition-colors cursor-pointer"
               >
-                Close Project Dossier
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-          </div>
+            {/* Scrollable content */}
+            <motion.div
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="p-6 sm:p-10 lg:p-12 overflow-y-auto space-y-8"
+            >
+              {/* Eyebrow */}
+              <motion.p
+                variants={itemVariants}
+                className="text-[11px] font-mono uppercase tracking-[0.28em] text-[#8A8580]"
+              >
+                {project.category}
+              </motion.p>
+
+              {/* Title */}
+              <motion.h2
+                variants={itemVariants}
+                className="font-sans font-medium text-[#111111] tracking-[-0.02em] leading-[1.15] text-[clamp(1.75rem,3vw,2.5rem)]"
+              >
+                {project.title}
+              </motion.h2>
+
+              {/* Mono metadata */}
+              <motion.div
+                variants={itemVariants}
+                className="flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[11px] uppercase tracking-[0.16em] text-[#8A8580]"
+              >
+                <span>{project.year}</span>
+                <span aria-hidden="true" className="text-[#D6D2C9]">
+                  •
+                </span>
+                <span>{project.location}</span>
+                <span aria-hidden="true" className="text-[#D6D2C9]">
+                  •
+                </span>
+                <span>{project.client}</span>
+              </motion.div>
+
+              {/* Museum image frame */}
+              <motion.div
+                variants={itemVariants}
+                className="relative aspect-[16/9] w-full overflow-hidden rounded-[4px] border border-[#E2E0D8] bg-[#EBE9E1]"
+              >
+                <img
+                  src={project.image}
+                  alt={project.title}
+                  className="w-full h-full object-cover"
+                  referrerPolicy="no-referrer"
+                />
+              </motion.div>
+
+              {/* Key metrics — hairline table */}
+              <motion.div variants={itemVariants}>
+                <div className="grid grid-cols-1 sm:grid-cols-3 border border-black/10">
+                  {project.keyStats.map((stat, i) => (
+                    <div
+                      key={i}
+                      className={`py-5 px-5 ${i > 0 ? 'sm:border-l border-black/10 sm:border-t-0 border-t' : ''}`}
+                    >
+                      <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#8A8580]">
+                        {stat.label}
+                      </div>
+                      <div className="mt-2 font-sans text-xl sm:text-2xl font-medium text-[#111111] tracking-[-0.01em]">
+                        {stat.value}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Scope description */}
+              <motion.div variants={itemVariants} className="space-y-3">
+                <h3 className="text-[11px] font-mono uppercase tracking-[0.28em] text-[#8A8580]">
+                  Engineering Scope &amp; Solution
+                </h3>
+                <p className="font-sans text-[15px] sm:text-base font-normal text-[#555555] leading-[1.75]">
+                  {project.fullDescription}
+                </p>
+              </motion.div>
+
+              {/* Disciplines — editorial rows */}
+              <motion.div variants={itemVariants}>
+                <h4 className="text-[11px] font-mono uppercase tracking-[0.28em] text-[#8A8580] mb-3">
+                  Disciplines &amp; Technical Methods
+                </h4>
+                <div className="border-t border-black/10">
+                  {project.disciplines.map((d, i) => (
+                    <div
+                      key={i}
+                      className="flex items-baseline justify-between gap-6 py-3 border-b border-black/10"
+                    >
+                      <span className="font-mono text-[11px] tracking-[0.1em] text-[#999999]">
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                      <span className="flex-1 text-right font-sans text-[14px] font-medium text-[#222222]">
+                        {d}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+
+              {/* Footer actions */}
+              <motion.div
+                variants={itemVariants}
+                className="pt-6 border-t border-black/10 flex items-center justify-between flex-wrap gap-4"
+              >
+                <button
+                  type="button"
+                  onClick={handleDiscuss}
+                  className="group inline-flex items-center gap-2 font-sans text-[15px] font-medium text-[#111111] cursor-pointer"
+                >
+                  <span className="border-b border-[#111111] group-hover:text-[#EDA81C] group-hover:border-[#EDA81C] transition-colors">
+                    Discuss similar engineering challenge
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-[#EDA81C] transition-transform duration-300 group-hover:translate-x-1" />
+                </button>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="text-[11px] font-mono uppercase tracking-[0.2em] text-[#8A8580] hover:text-[#111111] transition-colors cursor-pointer"
+                >
+                  Close Dossier
+                </button>
+              </motion.div>
+            </motion.div>
+          </motion.div>
         </motion.div>
-      </div>
+      )}
     </AnimatePresence>
   );
 }

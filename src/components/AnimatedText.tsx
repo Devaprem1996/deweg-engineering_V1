@@ -1,5 +1,5 @@
-import { motion } from 'motion/react';
-import React from 'react';
+import { motion, useScroll, useTransform, type Variants } from 'motion/react';
+import React, { useRef } from 'react';
 
 interface AnimatedHeadingProps {
   text: string;
@@ -31,7 +31,7 @@ export function AnimatedHeading({
     }
   };
 
-  const wordVariants = {
+  const wordVariants: Variants = {
     hidden: { y: '110%', opacity: 0 },
     visible: {
       y: '0%',
@@ -128,7 +128,7 @@ export function RevealOnScroll({
   );
 }
 
-interface ZoomImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+interface ZoomImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'onAnimationStart' | 'onAnimationEnd' | 'onDragStart' | 'onDragEnd' | 'onDragEnter' | 'onDrag' | 'onDragExit'> {
   containerClassName?: string;
   scaleOnHover?: number;
 }
@@ -156,5 +156,31 @@ export function ZoomImage({
         {...props}
       />
     </div>
+  );
+}
+
+interface ParallaxProps {
+  children: React.ReactNode;
+  className?: string;
+  /** Vertical parallax travel in pixels. Positive = content drifts up slower than scroll. */
+  offset?: number;
+}
+
+/**
+ * Lightweight scroll-parallax wrapper. Drifts its children vertically as the
+ * page scrolls, producing layered depth without a dedicated scroll library.
+ */
+export function Parallax({ children, className = '', offset = 60 }: ParallaxProps) {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ['start end', 'end start']
+  });
+  const y = useTransform(scrollYProgress, [0, 1], [offset, -offset]);
+
+  return (
+    <motion.div ref={ref} style={{ y }} className={className}>
+      {children}
+    </motion.div>
   );
 }

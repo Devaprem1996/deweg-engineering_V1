@@ -1,31 +1,17 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
-  Compass,
-  Layers,
-  Box,
-  Flame,
-  Zap,
-  CheckCircle2,
-  ArrowUpRight,
-  ZoomIn,
-  X,
-  ChevronRight,
-  ShieldCheck,
-  Cpu,
-  FileText,
-  BarChart3,
-  SlidersHorizontal,
   ArrowLeft,
-  Calendar,
-  Sparkles,
-  ExternalLink
+  ArrowRight,
+  ArrowUpRight,
+  Search,
+  Download,
+  X
 } from 'lucide-react';
 import {
   EXPERTISE_DOMAINS,
   EXPERTISE_HERO_ASSET,
-  ExpertiseDomain,
-  ExpertiseDomainAsset
+  ExpertiseDomain
 } from '../data/expertiseData';
 import { COMPANY_DETAILS } from '../data/engineeringData';
 
@@ -33,44 +19,117 @@ interface ExpertisePageProps {
   onNavigateHome: () => void;
   onNavigateToContact: (discipline?: string) => void;
   initialDomainId?: string;
+  initialScrollId?: string;
+}
+
+const ACCENT = '#C98A2D';
+const HAIRLINE = '#DDD9CE';
+const EASE = [0.16, 1, 0.3, 1] as const;
+
+const pad = (n: number) => String(n).padStart(2, '0');
+
+const metrics = [
+  { value: '7', label: 'Core Disciplines' },
+  { value: 'LOD 500', label: 'BIM Precision' },
+  { value: '100%', label: 'Code Compliant' },
+  { value: 'ISO', label: 'Certified QA' }
+];
+
+const sideMenuLabels: Record<string, string> = {
+  'project-management': 'Project Management',
+  'structural-design': 'Structural Design',
+  'bim-solutions': 'BIM / Digital Delivery',
+  'structural-steel': 'Steel Detailing',
+  'oil-and-gas': 'Oil & Gas Offshore',
+  'mep-design': 'MEP Engineering',
+  'information-technology': 'IT Automation'
+};
+
+/**
+ * IntersectionObserver-driven image: only mounts the <img> when the frame
+ * approaches the viewport (rootMargin 500px). Keeps 28 hi-res renders out of
+ * the initial DOM and off the main thread until actually needed.
+ */
+function LazyImage({
+  src,
+  alt,
+  imgClassName,
+  frameClassName
+}: {
+  src: string;
+  alt: string;
+  imgClassName?: string;
+  frameClassName?: string;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !('IntersectionObserver' in window)) {
+      setVisible(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            setVisible(true);
+            io.disconnect();
+          }
+        });
+      },
+      { rootMargin: '500px 0px' }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className={`overflow-hidden rounded-[2px] border border-[#DDD9CE] bg-[#EBE8DF] ${frameClassName ?? ''}`}
+      style={{ willChange: 'transform' }}
+    >
+      {visible && (
+        <img
+          src={src}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          referrerPolicy="no-referrer"
+          className={imgClassName}
+        />
+      )}
+    </div>
+  );
 }
 
 export default function ExpertisePage({
   onNavigateHome,
   onNavigateToContact,
-  initialDomainId
+  initialDomainId,
+  initialScrollId
 }: ExpertisePageProps) {
   const [selectedDomainFilter, setSelectedDomainFilter] = useState<string>(
     initialDomainId || 'all'
   );
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeAssetModal, setActiveAssetModal] = useState<{
-    asset: ExpertiseDomainAsset;
-    domainTitle: string;
-    domainCode: string;
-  } | null>(null);
+  const [activeDomainId, setActiveDomainId] = useState<string | null>(null);
+  const [modal, setModal] = useState<{ domain: ExpertiseDomain; index: number } | null>(null);
+  const [isDesktop, setIsDesktop] = useState<boolean>(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(min-width: 1024px)').matches : false
+  );
+  const scrollPanelRef = useRef<HTMLElement>(null);
 
-  // Icon selector per domain
-  const getDomainIcon = (code: string) => {
-    switch (code) {
-      case 'PM-CTRL':
-        return <BarChart3 className="w-5 h-5 text-[#EDA81C]" />;
-      case 'STR-ENG':
-        return <Compass className="w-5 h-5 text-[#EDA81C]" />;
-      case 'BIM-LOD':
-        return <Layers className="w-5 h-5 text-[#EDA81C]" />;
-      case 'STL-DET':
-        return <Box className="w-5 h-5 text-[#EDA81C]" />;
-      case 'O&G-OFF':
-        return <Flame className="w-5 h-5 text-[#EDA81C]" />;
-      case 'MEP-ENG':
-        return <Zap className="w-5 h-5 text-[#EDA81C]" />;
-      case 'IT-AUTO':
-        return <Cpu className="w-5 h-5 text-[#EDA81C]" />;
-      default:
-        return <Compass className="w-5 h-5 text-[#EDA81C]" />;
-    }
-  };
+  // Track large screens — desktop freezes the index rail and lets only the
+  // chapter panel drift; mobile keeps the full-page flow with the sticky strip.
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const onChange = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
 
   const filteredDomains = useMemo(() => {
     return EXPERTISE_DOMAINS.filter((domain) => {
@@ -84,18 +143,10 @@ export default function ExpertisePage({
       const q = searchQuery.toLowerCase();
       const matchTitle = domain.title.toLowerCase().includes(q);
       const matchSummary = domain.summary.toLowerCase().includes(q);
-      const matchPillars = domain.keyPillars.some((p) =>
-        p.toLowerCase().includes(q)
-      );
-      const matchDeliverables = domain.deliverables.some((d) =>
-        d.toLowerCase().includes(q)
-      );
-      const matchSoftware = domain.softwareStack.some((s) =>
-        s.toLowerCase().includes(q)
-      );
-      const matchStandards = domain.standards.some((s) =>
-        s.toLowerCase().includes(q)
-      );
+      const matchPillars = domain.keyPillars.some((p) => p.toLowerCase().includes(q));
+      const matchDeliverables = domain.deliverables.some((d) => d.toLowerCase().includes(q));
+      const matchSoftware = domain.softwareStack.some((s) => s.toLowerCase().includes(q));
+      const matchStandards = domain.standards.some((s) => s.toLowerCase().includes(q));
 
       return (
         matchTitle ||
@@ -108,175 +159,401 @@ export default function ExpertisePage({
     });
   }, [selectedDomainFilter, searchQuery]);
 
+  // Scroll a chapter into view. On desktop the chapters live in an internal
+  // scroll panel under a frozen index rail, so we scroll the panel; on mobile
+  // we keep routing through Lenis so the full-page scroll lands cleanly below
+  // the navbar (native scrollIntoView fights Lenis).
+  const scrollPanelTo = (target: HTMLElement) => {
+    const panel = scrollPanelRef.current;
+    if (isDesktop && panel) {
+      const top =
+        target.getBoundingClientRect().top -
+        panel.getBoundingClientRect().top +
+        panel.scrollTop;
+      panel.scrollTo({ top, behavior: 'smooth' });
+      return;
+    }
+    const lenis = (window as unknown as { __lenis?: { scrollTo: (t: HTMLElement, o?: { offset?: number }) => void } }).__lenis;
+    if (lenis) {
+      lenis.scrollTo(target, { offset: -88 });
+    } else {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const selectTab = (id: string) => {
+    setSelectedDomainFilter(id);
+    setActiveDomainId(id);
+    const target = document.getElementById(id);
+    if (!target) {
+      const panel = scrollPanelRef.current;
+      if (isDesktop && panel) {
+        panel.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+      return;
+    }
+    scrollPanelTo(target);
+  };
+
+  // Scrollspy — IntersectionObserver (off the main thread), not a scroll listener.
+  // All intersecting chapters are tracked; the TOPMOST (earliest in DOM order) wins,
+  // so the index highlight always names the chapter you're currently reading.
+  // On desktop the observer roots to the drifting chapter panel.
+  useEffect(() => {
+    const targets = EXPERTISE_DOMAINS.map((d) => document.getElementById(d.id)).filter(
+      (el): el is HTMLElement => el !== null
+    );
+    const visible = new Set<string>();
+    const panel = scrollPanelRef.current;
+    const usePanel = isDesktop && !!panel;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) visible.add(entry.target.id);
+          else visible.delete(entry.target.id);
+        });
+        if (visible.size === 0) return;
+        const topmost = EXPERTISE_DOMAINS.find((d) => visible.has(d.id));
+        if (topmost) setActiveDomainId(topmost.id);
+      },
+      usePanel
+        ? { root: panel, rootMargin: '-15% 0px -45% 0px', threshold: 0 }
+        : { rootMargin: '-35% 0px -55% 0px', threshold: 0 }
+    );
+    targets.forEach((t) => observer.observe(t));
+    return () => observer.disconnect();
+  }, [selectedDomainFilter, isDesktop]);
+
+  // React to an inbound navigation target (footer domain links) — filter to the
+  // chapter, activate it, and scroll it into view even if already mounted.
+  useEffect(() => {
+    if (initialDomainId) {
+      setSelectedDomainFilter(initialDomainId);
+      setActiveDomainId(initialDomainId);
+    }
+    if (initialScrollId) {
+      const timer = setTimeout(() => {
+        const target = document.getElementById(initialScrollId);
+        if (!target) return;
+        scrollPanelTo(target);
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [initialDomainId, initialScrollId, isDesktop]);
+
+  const openModal = (domain: ExpertiseDomain, index: number) => setModal({ domain, index });
+  const closeModal = () => setModal(null);
+
+  const moveModal = (dir: number) =>
+    setModal((m) =>
+      m
+        ? { ...m, index: (m.index + dir + m.domain.gallery.length) % m.domain.gallery.length }
+        : m
+    );
+
+  useEffect(() => {
+    if (!modal) return;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') closeModal();
+      if (e.key === 'ArrowLeft') moveModal(-1);
+      if (e.key === 'ArrowRight') moveModal(1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [modal]);
+
+  const activeAsset = modal?.domain.gallery[modal.index];
+  const galTotal = modal?.domain.gallery.length ?? 0;
+
   return (
-    <div id="expertise-page" className="min-h-screen bg-transparent text-[#0C0A09] pt-24 pb-20">
-      {/* Top Breadcrumb Header Bar */}
-      <div className="max-w-7xl mx-auto px-6 md:px-12 py-4">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/80 pb-4">
-          <div className="flex items-center gap-2 text-xs font-sans uppercase tracking-wider text-[#57534E]">
+    <div id="expertise-page" className="min-h-screen bg-[#F5F4EE] text-[#141412] pt-[72px]">
+      {/* ─── Masthead bar ─── */}
+      <div className="w-full border-b border-[#DDD9CE]">
+        <div className="max-w-[1600px] mx-auto px-[7vw] h-14 flex items-center justify-between gap-6">
+          <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
               onClick={onNavigateHome}
-              className="hover:text-[#EDA81C] transition-colors inline-flex items-center gap-1 cursor-pointer font-bold"
+              className="group inline-flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.12em] text-[#5C5A53] hover:text-[#141412] transition-colors cursor-pointer shrink-0"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>DEWEG Engineering</span>
+              <ArrowLeft className="w-3.5 h-3.5 transition-transform duration-300 group-hover:-translate-x-1" />
+              <span className="whitespace-nowrap">Deweg Engineering</span>
             </button>
-            <ChevronRight className="w-3 h-3 text-[#A8A29E]" />
-            <span className="text-[#0C0A09] font-bold">Domain We Expertise</span>
-            <span className="text-[#EDA81C] bg-[#EDA81C]/10 px-2.5 py-0.5 rounded-full text-[10px] font-bold">
-              REFERENCE PORTFOLIO
+            <span className="font-mono text-[11px] text-[#B9B5A8] hidden sm:inline">/</span>
+            <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-[#5C5A53] hidden sm:inline whitespace-nowrap">
+              Domain We Expertise
+            </span>
+            <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-[#C98A2D] hidden md:inline whitespace-nowrap">
+              · Reference Portfolio
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
-            <span className="text-xs font-sans font-medium text-[#57534E] hidden sm:inline">
+          <div className="flex items-center gap-8 shrink-0">
+            <span className="font-mono text-[11px] tracking-[0.12em] text-[#8A877E] hidden lg:inline">
               CIN: {COMPANY_DETAILS.cin}
             </span>
             <button
               type="button"
               onClick={() => onNavigateToContact()}
-              className="px-4 py-2 rounded-xl bg-[#0C0A09] text-white hover:bg-[#EDA81C] transition-all text-xs font-sans font-bold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
+              className="group inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.14em] text-[#141412] hover:text-black transition-colors cursor-pointer"
             >
-              <span>Consult an Engineer</span>
-              <ArrowUpRight className="w-3.5 h-3.5" />
+              <span className="whitespace-nowrap">Consult an Engineer</span>
+              <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Hero Section */}
-      <section className="max-w-7xl mx-auto px-6 md:px-12 pt-8 pb-14">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+      {/* ─── Hero ─── */}
+      <section className="max-w-[1600px] mx-auto px-[7vw] pt-16 lg:pt-20 pb-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           <div className="lg:col-span-7">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#EAE5DC] text-[#EDA81C] text-xs font-sans font-bold uppercase tracking-widest mb-4">
-              <Compass className="w-3.5 h-3.5" />
-              <span>Official Practice Reference</span>
+            <div className="flex items-center gap-4">
+              <motion.span
+                initial={{ scaleX: 0 }}
+                whileInView={{ scaleX: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.9, ease: EASE }}
+                className="block h-px w-8 bg-[#DDD9CE] origin-left"
+              />
+              <motion.span
+                initial={{ opacity: 0, y: 8 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.7, ease: 'easeOut' }}
+                className="font-mono text-[11px] uppercase tracking-[0.28em] text-[#8A877E]"
+              >
+                Official Practice Reference
+              </motion.span>
             </div>
-            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl text-[#0C0A09] font-bold leading-[1.1] tracking-tight">
-              Domain We Expertise
-            </h1>
-            <p className="mt-4 text-lg sm:text-xl text-[#292524] font-normal leading-relaxed max-w-2xl">
-              From concept to construction-level reality. Detailed engineering,
-              high-fidelity BIM coordination, structural analysis, offshore
-              platforms, and proprietary IT automations engineered for zero field rework.
-            </p>
 
-            {/* Quick Metrics Bar */}
-            <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 py-5 px-6 rounded-3xl backdrop-blur-xl bg-white/85 border border-white/80 shadow-[0_12px_40px_rgb(0,0,0,0.04)]">
-              <div>
-                <span className="block text-2xl font-serif font-bold text-[#0C0A09]">7</span>
-                <span className="text-[11px] font-sans uppercase font-bold tracking-wider text-[#57534E]">
-                  Core Disciplines
+            <h1 className="mt-6 font-sans font-medium text-[#141412] tracking-[-0.03em] leading-[1.02] text-[clamp(3rem,5.5vw,5.5rem)]">
+              {['Domain We Expertise'].map((w) => (
+                <span key={w}>
+                  {w.split(' ').map((word, i) => (
+                    <span key={`${word}-${i}`} className="inline-block overflow-hidden align-top">
+                      <motion.span
+                        initial={{ y: '100%', opacity: 0 }}
+                        whileInView={{ y: '0%', opacity: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.7, delay: i * 0.08, ease: EASE }}
+                        className="inline-block"
+                      >
+                        {word}&nbsp;
+                      </motion.span>
+                    </span>
+                  ))}
                 </span>
-              </div>
-              <div>
-                <span className="block text-2xl font-serif font-bold text-[#0C0A09]">LOD 500</span>
-                <span className="text-[11px] font-sans uppercase font-bold tracking-wider text-[#57534E]">
-                  BIM Precision
-                </span>
-              </div>
-              <div>
-                <span className="block text-2xl font-serif font-bold text-[#0C0A09]">100%</span>
-                <span className="text-[11px] font-sans uppercase font-bold tracking-wider text-[#57534E]">
-                  Code Compliant
-                </span>
-              </div>
-              <div>
-                <span className="block text-2xl font-serif font-bold text-[#0C0A09]">ISO</span>
-                <span className="text-[11px] font-sans uppercase font-bold tracking-wider text-[#57534E]">
-                  Certified QA
-                </span>
-              </div>
-            </div>
+              ))}
+            </h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.7, delay: 0.25, ease: EASE }}
+              className="mt-6 max-w-[620px] font-sans text-[1.125rem] leading-[1.6] text-[#5C5A53]"
+            >
+              From concept to construction-level reality. Detailed engineering,
+              high-fidelity BIM coordination, structural analysis, offshore platforms, and
+              proprietary IT automations engineered for zero field rework.
+            </motion.p>
           </div>
 
-          {/* Hero Banner Asset */}
+          {/* Hero image + caption below frame */}
           <div className="lg:col-span-5">
-            <div className="relative rounded-3xl overflow-hidden border border-white/80 backdrop-blur-xl bg-white/85 shadow-[0_12px_40px_rgb(0,0,0,0.04)] group">
-              <img
-                src={EXPERTISE_HERO_ASSET.url}
-                alt={EXPERTISE_HERO_ASSET.alt}
-                className="w-full h-80 sm:h-96 object-cover filter contrast-[1.04] group-hover:scale-105 transition-transform duration-700 ease-out"
-                loading="eager"
-                referrerPolicy="no-referrer"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#1C1917]/70 via-[#1C1917]/20 to-transparent pointer-events-none" />
-              <div className="absolute bottom-4 left-4 right-4 p-4 rounded-2xl bg-white/95 backdrop-blur-md border border-white/80 text-[#0C0A09] shadow-md">
-                <p className="text-xs font-sans uppercase tracking-wider text-[#EDA81C] font-bold">
-                  DEWEG Reference Portfolio
-                </p>
-                <p className="text-xs text-[#292524] mt-0.5 line-clamp-1 font-medium">
-                  Verified CAD drawings, 3D structural skeletons, and live field simulations.
-                </p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, delay: 0.15, ease: EASE }}
+            >
+              <div className="rounded-[2px] overflow-hidden border border-[#DDD9CE] bg-[#EBE8DF]">
+                <img
+                  src={EXPERTISE_HERO_ASSET.url}
+                  alt={EXPERTISE_HERO_ASSET.alt}
+                  className="w-full aspect-[4/3] object-cover"
+                  loading="eager"
+                  decoding="async"
+                  referrerPolicy="no-referrer"
+                />
               </div>
-            </div>
+              <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.14em] text-[#8A877E]">
+                [ FIG 01 — DEWEG REFERENCE PORTFOLIO ]
+              </p>
+              <p className="mt-1 font-sans text-[13px] text-[#5C5A53]">
+                Verified CAD drawings, 3D structural skeletons, and live field simulations.
+              </p>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Metrics strip — hairline columns, no card */}
+        <div className="mt-12 border-y border-[#DDD9CE]">
+          <div className="grid grid-cols-2 lg:grid-cols-4">
+            {metrics.map((m, i) => (
+              <motion.div
+                key={m.label}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: i * 0.06, ease: EASE }}
+                className={`px-7 py-8 ${i > 0 ? 'lg:border-l border-[#DDD9CE]' : ''} ${
+                  i % 2 === 1 ? 'border-l border-[#DDD9CE]' : ''
+                } ${i >= 2 ? 'border-t border-[#DDD9CE] lg:border-t-0' : ''}`}
+              >
+                <span className="block font-sans font-medium text-[#141412] tracking-[-0.02em] text-[clamp(2.5rem,3.8vw,3.5rem)] leading-none">
+                  {m.value}
+                </span>
+                <span className="mt-2 block font-mono text-[11px] uppercase tracking-[0.12em] text-[#8A877E]">
+                  {m.label}
+                </span>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* Filter & Search Bar with Glassmorphism */}
-      <section className="sticky top-[69px] z-30 backdrop-blur-xl bg-white/85 border-y border-white/80 py-4 shadow-[0_4px_20px_rgb(0,0,0,0.03)]">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-4">
-          {/* Category Tabs */}
-          <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-1 md:pb-0 scrollbar-none">
+      {/* ─── Mobile index strip (< 1024px) — pins under navbar ─── */}
+      <nav className="sticky top-[72px] z-30 bg-[#F5F4EE] border-y border-[#DDD9CE] lg:hidden">
+        <div className="flex items-center gap-5 px-[7vw] h-14 overflow-x-auto [scrollbar-width:none]">
+          <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#8A877E] shrink-0">
+            Index
+          </span>
+          {EXPERTISE_DOMAINS.map((d) => (
             <button
+              key={d.id}
               type="button"
-              onClick={() => setSelectedDomainFilter('all')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-sans font-bold uppercase tracking-wider whitespace-nowrap transition-all cursor-pointer ${
-                selectedDomainFilter === 'all'
-                  ? 'bg-[#EDA81C] text-white shadow-sm'
-                  : 'bg-white/90 text-[#292524] border border-white/80 hover:border-[#EDA81C]'
+              onClick={() => selectTab(d.id)}
+              className={`font-mono text-[11px] uppercase tracking-[0.1em] whitespace-nowrap transition-colors duration-300 cursor-pointer shrink-0 ${
+                selectedDomainFilter === d.id ? 'text-[#141412]' : 'text-[#8A877E] hover:text-[#141412]'
               }`}
             >
-              All 7 Domains
+              {d.number} {d.code}
             </button>
-            {EXPERTISE_DOMAINS.map((domain) => (
-              <button
-                key={domain.id}
-                type="button"
-                onClick={() => setSelectedDomainFilter(domain.id)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-sans font-bold uppercase tracking-wider whitespace-nowrap transition-all inline-flex items-center gap-1.5 cursor-pointer ${
-                  selectedDomainFilter === domain.id
-                    ? 'bg-[#0C0A09] text-white shadow-sm'
-                    : 'bg-white/90 text-[#292524] border border-white/80 hover:border-[#EDA81C]'
-                }`}
-              >
-                <span>{domain.code}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* Quick Search Input */}
-          <div className="relative w-full md:w-72 shrink-0">
+          ))}
+          <div className="relative shrink-0 w-44 ml-2">
+            <Search
+              className="absolute left-0 top-1/2 -translate-y-1/2 w-3 h-3 text-[#8A877E]"
+              strokeWidth={1.5}
+            />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search software, code, standards..."
-              className="w-full bg-white/90 border border-[#E7E1D8] rounded-full pl-9 pr-4 py-2 text-xs text-[#0C0A09] font-medium placeholder-[#78716C] focus:outline-none focus:border-[#EDA81C] transition-colors"
+              placeholder="Search…"
+              className="w-full bg-transparent border-b border-[#DDD9CE] focus:border-[#141412] outline-none pl-6 pr-4 py-1 text-[12px] text-[#141412] placeholder:text-[#B0ACA2] transition-colors duration-300"
             />
-            <SlidersHorizontal className="w-3.5 h-3.5 text-[#57534E] absolute left-3 top-1/2 -translate-y-1/2" />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#57534E] hover:text-[#0C0A09] cursor-pointer"
-              >
-                <X className="w-3 h-3" />
-              </button>
-            )}
           </div>
         </div>
-      </section>
+      </nav>
 
-      {/* Main Domains Section */}
-      <section className="max-w-7xl mx-auto px-6 md:px-12 pt-12">
+      {/* ─── Domains: frozen TOC index rail + drifting chapter panel ─── */}
+      <div
+        data-lenis-prevent={isDesktop || undefined}
+        style={{ overscrollBehavior: 'auto' }}
+        className="max-w-[1600px] mx-auto px-[7vw] lg:h-[calc(100vh_-_72px)] lg:overflow-hidden"
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-8 lg:h-full">
+          {/* Sidebar TOC (columns 1–3) — frozen on desktop */}
+          <aside className="hidden lg:block lg:col-span-3">
+            <div className="lg:h-full lg:overflow-y-auto lg:[scrollbar-width:none] pt-12 pr-2">
+              <div className="flex items-baseline justify-between gap-4 border-b border-[#DDD9CE] pb-4">
+                <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#8A877E]">
+                  Index — 7 Domains
+                </span>
+                <span className="font-mono text-[10px] tracking-[0.1em] text-[#B9B5A8]">
+                  {selectedDomainFilter === 'all' ? 'All · 07' : '01 / 07'}
+                </span>
+              </div>
+
+              <ul>
+                {EXPERTISE_DOMAINS.map((d) => {
+                  const isActive = activeDomainId === d.id;
+                  return (
+                    <li key={d.id}>
+                      <button
+                        type="button"
+                        onClick={() => selectTab(d.id)}
+                        className={`group relative w-full text-left py-4 border-b border-[#EBE9E0] flex items-center justify-between gap-3 transition-colors duration-300 cursor-pointer ${
+                          isActive ? 'text-[#141412]' : 'text-[#5C5A53] hover:text-[#141412]'
+                        }`}
+                      >
+                        <motion.span
+                          initial={false}
+                          animate={{ scaleY: isActive ? 1 : 0 }}
+                          transition={{ duration: 0.3, ease: EASE }}
+                          className={`pointer-events-none absolute left-0 top-0 bottom-0 w-[2px] origin-top bg-[#C98A2D] ${
+                            isActive ? 'block' : 'hidden'
+                          }`}
+                        />
+                        <span className="flex items-baseline gap-3 pl-4">
+                          <span className="font-mono text-[10px] tracking-[0.1em] text-[#8A877E]">
+                            {d.number}
+                          </span>
+                          <span
+                            className={`font-sans text-[14px] leading-snug ${
+                              isActive ? 'font-medium' : 'font-normal'
+                            }`}
+                          >
+                            {sideMenuLabels[d.id] || d.title}
+                          </span>
+                        </span>
+                        <ArrowUpRight className="w-3.5 h-3.5 text-[#8A877E] opacity-0 -translate-x-1 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0 shrink-0" />
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+
+              {/* Sidebar search */}
+              <div className="relative mt-6">
+                <Search
+                  className="absolute left-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#8A877E]"
+                  strokeWidth={1.5}
+                />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search discipline, software, code…"
+                  className="w-full bg-transparent border-b border-[#DDD9CE] focus:border-[#141412] outline-none pl-7 pr-5 py-1.5 text-[13px] text-[#141412] placeholder:text-[#B0ACA2] transition-colors duration-300"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 text-[#8A877E] hover:text-[#141412] cursor-pointer"
+                    aria-label="Clear search"
+                  >
+                    <X className="w-3.5 h-3.5" strokeWidth={1.5} />
+                  </button>
+                )}
+              </div>
+            </div>
+          </aside>
+
+          {/* Spacer (column 4) */}
+          <div className="hidden lg:block lg:col-span-1" />
+
+          {/* Chapters (columns 5–12) — the drifting panel */}
+          <section
+            ref={scrollPanelRef}
+            className="lg:col-span-8 lg:h-full lg:overflow-y-auto scroll-smooth pb-4"
+          >
         {filteredDomains.length === 0 ? (
-          <div className="py-20 text-center rounded-3xl backdrop-blur-xl bg-white/85 border border-white/80 shadow-[0_12px_40px_rgb(0,0,0,0.04)]">
-            <p className="font-serif text-2xl text-[#0C0A09] font-bold">No engineering domain found</p>
-            <p className="text-sm text-[#57534E] mt-2 font-sans">
-              No results match "{searchQuery}". Try searching for Tekla, STAAD, BIM, LOD, or Offshore.
+          <div className="border-t border-[#DDD9CE] py-[120px] text-center">
+            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#8A877E]">
+              No Engineering Domain Found
+            </p>
+            <p className="mt-3 font-sans text-sm text-[#5C5A53]">
+              No results match "{searchQuery}". Try Tekla, STAAD, BIM, LOD, or Offshore.
             </p>
             <button
               type="button"
@@ -284,397 +561,401 @@ export default function ExpertisePage({
                 setSearchQuery('');
                 setSelectedDomainFilter('all');
               }}
-              className="mt-4 px-5 py-2.5 rounded-xl bg-[#EDA81C] text-white text-xs font-sans font-bold uppercase tracking-wider hover:bg-[#D49110] transition-colors cursor-pointer shadow-sm"
+              className="mt-6 font-mono text-[11px] uppercase tracking-[0.14em] text-[#141412] underline underline-offset-4 hover:text-[#C98A2D] transition-colors cursor-pointer"
             >
               Reset Filters
             </button>
           </div>
         ) : (
-          <div className="space-y-16">
-            {filteredDomains.map((domain, index) => (
-              <motion.article
-                key={domain.id}
-                id={domain.id}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-50px' }}
-                transition={{ duration: 0.6, delay: index * 0.05 }}
-                className="rounded-3xl backdrop-blur-xl bg-white/85 border border-white/80 shadow-[0_12px_40px_rgb(0,0,0,0.04)] overflow-hidden"
-              >
-                {/* Domain Header Banner */}
-                <div className="p-6 sm:p-8 bg-[#FAF6F0]/80 border-b border-white/80">
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-3">
-                        <span className="px-2.5 py-1 rounded bg-[#0C0A09] text-white text-xs font-sans font-bold tracking-widest">
-                          {domain.number}
-                        </span>
-                        <span className="px-2.5 py-1 rounded bg-[#EDA81C]/15 text-[#EDA81C] text-xs font-sans font-bold tracking-wider">
-                          {domain.code}
-                        </span>
-                        <div className="hidden sm:flex items-center gap-1.5 text-xs font-sans font-bold text-[#57534E]">
-                          {getDomainIcon(domain.code)}
-                          <span>Discipline</span>
-                        </div>
-                      </div>
-                      <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl text-[#0C0A09] font-bold tracking-tight">
-                        {domain.title}
-                      </h2>
-                    </div>
+          filteredDomains.map((domain) => (
+            <motion.article
+              key={domain.id}
+              id={domain.id}
+              className="border-t border-[#DDD9CE] py-[90px] lg:py-[120px] scroll-mt-28"
+            >
+              {/* Chapter header */}
+              <div className="flex items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                  <motion.span
+                    initial={{ scaleX: 0 }}
+                    whileInView={{ scaleX: 1 }}
+                    viewport={{ once: true, margin: '-20% 0px -20% 0px' }}
+                    transition={{ duration: 0.9, ease: EASE }}
+                    className="block h-px w-8 bg-[#DDD9CE] origin-left"
+                  />
+                  <motion.span
+                    initial={{ opacity: 0, y: 8 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: '-20% 0px -20% 0px' }}
+                    transition={{ duration: 0.6, ease: 'easeOut' }}
+                    className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#8A877E]"
+                  >
+                    {domain.number} / {domain.code} — Discipline
+                  </motion.span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onNavigateToContact(domain.title)}
+                  className="group inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#141412] hover:text-black transition-colors cursor-pointer shrink-0"
+                >
+                  <span className="whitespace-nowrap">Engage Domain</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+                </button>
+              </div>
 
-                    <button
-                      type="button"
-                      onClick={() => onNavigateToContact(domain.title)}
-                      className="px-4 py-2 rounded-xl border border-[#EDA81C] text-[#EDA81C] hover:bg-[#EDA81C] hover:text-white transition-all text-xs font-sans font-bold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-sm cursor-pointer"
+              {/* Chapter title — word-masked reveal */}
+              <h2 className="mt-6 font-sans font-medium text-[#141412] tracking-[-0.02em] leading-[1.05] text-[clamp(2.4rem,4vw,3.6rem)]">
+                {domain.title.split(' ').map((word, i) => (
+                  <span key={`${domain.id}-${word}-${i}`} className="inline-block overflow-hidden align-top">
+                    <motion.span
+                      initial={{ y: '100%', opacity: 0 }}
+                      whileInView={{ y: '0%', opacity: 1 }}
+                      viewport={{ once: true, margin: '-15% 0px -15% 0px' }}
+                      transition={{ duration: 0.7, delay: i * 0.08, ease: EASE }}
+                      className="inline-block"
                     >
-                      <span>Engage Domain</span>
-                      <ArrowUpRight className="w-3.5 h-3.5" />
-                    </button>
+                      {word}&nbsp;
+                    </motion.span>
+                  </span>
+                ))}
+              </h2>
+
+              {/* Editorial pull-quote */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-15% 0px -15% 0px' }}
+                transition={{ duration: 0.7, delay: 0.2, ease: EASE }}
+                className="mt-10 max-w-[900px] border-l-2 border-[#C98A2D] pl-8"
+              >
+                <p className="font-sans text-[1.4rem] lg:text-[1.5rem] leading-[1.35] text-[#2A2A28]">
+                  "{domain.summary}"
+                </p>
+              </motion.div>
+
+              {/* Content grid */}
+              <div className="mt-14 grid grid-cols-1 lg:grid-cols-12 gap-x-12 gap-y-14">
+                {/* Left column */}
+                <div className="lg:col-span-7 space-y-12">
+                  <div>
+                    <h3 className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#8A877E]">
+                      Engineering Architecture &amp; Scope
+                    </h3>
+                    <motion.p
+                      initial={{ opacity: 0, y: 16 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: '-10% 0px -10% 0px' }}
+                      transition={{ duration: 0.6, ease: EASE }}
+                      className="mt-4 font-sans text-[1rem] leading-[1.65] text-[#5C5A53]"
+                    >
+                      {domain.description}
+                    </motion.p>
                   </div>
 
-                  {/* Verbatim quote from Deweg Reference page */}
-                  <div className="mt-6 p-5 rounded-2xl bg-white/90 border-l-4 border-[#EDA81C] border border-white/80 shadow-sm">
-                    <p className="text-sm sm:text-base text-[#0C0A09] italic font-serif leading-relaxed font-normal">
-                      "{domain.summary}"
+                  <div>
+                    <h3 className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#8A877E]">
+                      Core Execution Pillars
+                    </h3>
+                    <ul className="mt-4">
+                      {domain.keyPillars.map((pillar, i) => (
+                        <motion.li
+                          key={i}
+                          initial={{ opacity: 0, y: 14 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true, margin: '-10% 0px -10% 0px' }}
+                          transition={{ duration: 0.5, delay: i * 0.05, ease: EASE }}
+                          className="flex items-baseline gap-4 border-t border-[#DDD9CE] py-4"
+                        >
+                          <span className="font-mono text-[11px] tracking-[0.1em] text-[#8A877E] shrink-0">
+                            {pad(i + 1)}
+                          </span>
+                          <span className="font-sans text-[0.95rem] text-[#141412] leading-snug">
+                            {pillar}
+                          </span>
+                        </motion.li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h3 className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#8A877E]">
+                      Standard Deliverable Transmittals
+                    </h3>
+                    <ul className="mt-4">
+                      {domain.deliverables.map((deliv, i) => (
+                        <motion.li
+                          key={i}
+                          initial={{ opacity: 0, y: 14 }}
+                          whileInView={{ opacity: 1, y: 0 }}
+                          viewport={{ once: true, margin: '-10% 0px -10% 0px' }}
+                          transition={{ duration: 0.5, delay: i * 0.05, ease: EASE }}
+                          className="group flex items-center justify-between gap-6 border-t border-[#DDD9CE] py-4"
+                        >
+                          <span className="font-sans text-[0.95rem] text-[#141412] leading-snug">
+                            {deliv}
+                          </span>
+                          <ArrowUpRight className="w-4 h-4 text-[#8A877E] opacity-0 group-hover:opacity-100 transition-opacity duration-300 shrink-0" />
+                        </motion.li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Right column */}
+                <div className="lg:col-span-5 space-y-12">
+                  <div>
+                    <h3 className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#8A877E]">
+                      Software Engine &amp; Stack
+                    </h3>
+                    <p className="mt-4 font-mono text-[12px] leading-[1.9] text-[#141412]">
+                      {domain.softwareStack.join('  ·  ')}
                     </p>
                   </div>
-                </div>
 
-                {/* Domain Body */}
-                <div className="p-6 sm:p-8 space-y-10">
-                  {/* Detailed Description & Pill Grid */}
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    {/* Left: Detailed Scope & Key Pillars */}
-                    <div className="lg:col-span-7 space-y-6">
-                      <div>
-                        <h3 className="text-xs font-sans uppercase tracking-widest text-[#EDA81C] font-bold mb-2">
-                          Engineering Architecture & Scope
-                        </h3>
-                        <p className="text-sm sm:text-base text-[#292524] font-sans leading-relaxed">
-                          {domain.description}
-                        </p>
-                      </div>
-
-                      {/* Key Pillars Checklist */}
-                      <div>
-                        <h4 className="text-xs font-sans uppercase tracking-widest text-[#0C0A09] font-bold mb-3 flex items-center gap-2">
-                          <CheckCircle2 className="w-4 h-4 text-[#EDA81C]" />
-                          <span>Core Execution Pillars</span>
-                        </h4>
-                        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                          {domain.keyPillars.map((pillar, pIdx) => (
-                            <li
-                              key={pIdx}
-                              className="flex items-start gap-2 p-3 rounded-2xl backdrop-blur-md bg-white/70 border border-white/80 text-xs text-[#0C0A09] font-medium shadow-xs"
-                            >
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#EDA81C] mt-1.5 shrink-0" />
-                              <span>{pillar}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      {/* Deliverables Transmittals */}
-                      <div>
-                        <h4 className="text-xs font-sans uppercase tracking-widest text-[#0C0A09] font-bold mb-3 flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-[#EDA81C]" />
-                          <span>Standard Deliverable Transmittals</span>
-                        </h4>
-                        <div className="space-y-2">
-                          {domain.deliverables.map((deliv, dIdx) => (
-                            <div
-                              key={dIdx}
-                              className="flex items-center gap-2 text-xs text-[#292524] pl-3 border-l-2 border-[#EDA81C] font-medium"
-                            >
-                              <span>{deliv}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Right: Technical Specs, Software & Compliance */}
-                    <div className="lg:col-span-5 space-y-6">
-                      {/* Software Stack */}
-                      <div className="p-6 rounded-3xl backdrop-blur-xl bg-white/80 border border-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.03)]">
-                        <h4 className="text-xs font-sans uppercase tracking-widest text-[#57534E] font-bold mb-3">
-                          Software Engine & Stack
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {domain.softwareStack.map((sw, swIdx) => (
-                            <span
-                              key={swIdx}
-                              className="px-3 py-1.5 rounded-xl bg-white border border-[#E7E1D8] text-xs font-sans text-[#0C0A09] font-bold shadow-xs"
-                            >
-                              {sw}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Codes & Standards */}
-                      <div className="p-6 rounded-3xl backdrop-blur-xl bg-white/80 border border-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.03)]">
-                        <h4 className="text-xs font-sans uppercase tracking-widest text-[#57534E] font-bold mb-3 flex items-center gap-1.5">
-                          <ShieldCheck className="w-4 h-4 text-[#EDA81C]" />
-                          <span>Codes, Norms & Regulatory Compliance</span>
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {domain.standards.map((std, stdIdx) => (
-                            <span
-                              key={stdIdx}
-                              className="px-3 py-1.5 rounded-xl bg-[#FFF9ED] text-[#0C0A09] text-xs font-sans font-semibold border border-[#E7E1D8]"
-                            >
-                              {std}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Interactive Featured Callout */}
-                      {domain.featuredAsset && (
-                        <div
-                          onClick={() =>
-                            setActiveAssetModal({
-                              asset: domain.featuredAsset!,
-                              domainTitle: domain.title,
-                              domainCode: domain.code
-                            })
-                          }
-                          className="group relative rounded-3xl overflow-hidden border border-white/80 cursor-pointer shadow-[0_12px_40px_rgb(0,0,0,0.04)] bg-[#EAE5DC]"
-                        >
-                          <div className="aspect-[16/10] overflow-hidden">
-                            <img
-                              src={domain.featuredAsset.url}
-                              alt={domain.featuredAsset.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                              loading="lazy"
-                              referrerPolicy="no-referrer"
-                            />
-                          </div>
-                          <div className="absolute inset-0 bg-gradient-to-t from-[#0C0A09]/85 via-transparent to-transparent flex flex-col justify-end p-5 text-white">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-sans uppercase tracking-widest px-2.5 py-1 rounded-full bg-[#EDA81C] text-white font-bold">
-                                {domain.featuredAsset.tag || 'Featured Asset'}
-                              </span>
-                              <span className="inline-flex items-center gap-1 text-xs text-white/90 group-hover:text-[#EDA81C] transition-colors font-semibold">
-                                <ZoomIn className="w-3.5 h-3.5" />
-                                <span>Inspect Full Res</span>
-                              </span>
-                            </div>
-                            <p className="text-xs font-bold mt-2 text-white line-clamp-1">
-                              {domain.featuredAsset.title}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                  <div>
+                    <h3 className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#8A877E]">
+                      Codes, Norms &amp; Regulatory Compliance
+                    </h3>
+                    <p className="mt-4 font-mono text-[12px] leading-[1.9] text-[#141412]">
+                      {domain.standards.join('  ·  ')}
+                    </p>
                   </div>
 
-                  {/* Authentic High-Resolution Gallery Grid */}
-                  <div className="border-t border-white/80 pt-8">
-                    <div className="flex items-center justify-between mb-5">
-                      <div>
-                        <h4 className="text-xs font-sans uppercase tracking-widest text-[#0C0A09] font-bold">
-                          Verified Technical Assets & Model Gallery
-                        </h4>
-                        <p className="text-xs text-[#57534E] mt-0.5 font-medium">
-                          Click any drawing, model render, or simulation to open in high-resolution inspector.
-                        </p>
+                  {domain.featuredAsset && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 16 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: '-10% 0px -10% 0px' }}
+                      transition={{ duration: 0.6, ease: EASE }}
+                    >
+                      <div onClick={() => openModal(domain, 0)} className="cursor-pointer">
+                        <LazyImage
+                          src={domain.featuredAsset.url}
+                          alt={domain.featuredAsset.title}
+                          frameClassName="aspect-[16/10]"
+                          imgClassName="w-full h-full object-cover transition-transform duration-500 hover:scale-[1.02]"
+                        />
                       </div>
-                      <span className="text-xs font-sans font-bold text-[#EDA81C] bg-[#EDA81C]/10 px-3 py-1 rounded-full border border-[#EDA81C]/20">
-                        {domain.gallery.length} Assets
-                      </span>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                      {domain.gallery.map((asset) => (
-                        <div
-                          key={asset.id}
-                          onClick={() =>
-                            setActiveAssetModal({
-                              asset,
-                              domainTitle: domain.title,
-                              domainCode: domain.code
-                            })
-                          }
-                          className="group relative rounded-3xl overflow-hidden border border-white/80 backdrop-blur-xl bg-white/85 cursor-pointer hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)] hover:border-[#EDA81C]/50 transition-all"
+                      <div className="mt-3 flex items-center justify-between gap-4">
+                        <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#8A877E]">
+                          [ FIG {domain.number}.1 — {domain.featuredAsset.tag || domain.code} ]
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => openModal(domain, 0)}
+                          className="group inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#141412] hover:text-black transition-colors cursor-pointer shrink-0"
                         >
-                          <div className="aspect-[16/11] relative overflow-hidden bg-[#EAE5DC]">
-                            <img
-                              src={asset.url}
-                              alt={asset.title}
-                              className="w-full h-full object-cover filter contrast-[1.02] group-hover:scale-105 transition-transform duration-500"
-                              loading="lazy"
-                              referrerPolicy="no-referrer"
-                            />
-                            {asset.type === 'gif' && (
-                              <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-emerald-600 text-white text-[10px] font-sans font-bold tracking-wider shadow-sm">
-                                LIVE SIMULATION
-                              </span>
-                            )}
-                            <div className="absolute inset-0 bg-[#0C0A09]/0 group-hover:bg-[#0C0A09]/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                              <span className="px-3.5 py-2 rounded-full bg-white text-[#0C0A09] text-xs font-sans font-bold uppercase tracking-wider inline-flex items-center gap-1.5 shadow-lg">
-                                <ZoomIn className="w-3.5 h-3.5 text-[#EDA81C]" />
-                                <span>Inspect Asset</span>
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="p-4 bg-white/90 border-t border-white/80">
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="text-[10px] font-sans uppercase tracking-wider text-[#EDA81C] font-bold">
-                                {asset.tag || domain.code}
-                              </span>
-                              <span className="text-[10px] font-sans text-[#78716C] font-semibold uppercase">
-                                {asset.type.toUpperCase()}
-                              </span>
-                            </div>
-                            <h5 className="text-xs font-bold text-[#0C0A09] mt-1.5 line-clamp-1 group-hover:text-[#EDA81C] transition-colors">
-                              {asset.title}
-                            </h5>
-                            <p className="text-xs text-[#57534E] mt-1 line-clamp-2 leading-relaxed">
-                              {asset.caption}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                          <span className="whitespace-nowrap">Inspect Full Resolution</span>
+                          <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
                 </div>
-              </motion.article>
-            ))}
-          </div>
+              </div>
+
+              {/* Gallery */}
+              <div className="mt-16 border-t border-[#DDD9CE] pt-10">
+                <div className="flex items-baseline justify-between gap-6">
+                  <h4 className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#8A877E]">
+                    Verified Technical Assets &amp; Model Gallery
+                  </h4>
+                  <span className="font-mono text-[11px] tracking-[0.14em] text-[#8A877E] shrink-0">
+                    {pad(1)} / {pad(domain.gallery.length)} Assets
+                  </span>
+                </div>
+                <p className="mt-2 font-sans text-[13px] text-[#5C5A53]">
+                  Click any drawing, model render, or simulation to open in high-resolution inspector.
+                </p>
+
+                <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10">
+                  {domain.gallery.map((asset, gi) => (
+                    <motion.div
+                      key={asset.id}
+                      initial={{ opacity: 0, y: 16 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: '-10% 0px -10% 0px' }}
+                      transition={{ duration: 0.5, delay: gi * 0.05, ease: EASE }}
+                      onClick={() => openModal(domain, gi)}
+                      className="group cursor-pointer"
+                    >
+                      <LazyImage
+                        src={asset.url}
+                        alt={asset.title}
+                        frameClassName="aspect-[16/11]"
+                        imgClassName="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                      />
+                      <div className="mt-3 flex items-center justify-between gap-3">
+                        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[#8A877E]">
+                          {asset.tag || domain.code}
+                        </span>
+                        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[#8A877E]">
+                          {asset.type}
+                        </span>
+                      </div>
+                      <h5 className="mt-1 font-sans text-[0.95rem] font-medium text-[#141412] line-clamp-1 underline-offset-4 decoration-transparent transition-all duration-300 group-hover:translate-x-1 group-hover:underline group-hover:decoration-1 group-hover:decoration-[#DDD9CE]">
+                        {asset.title}
+                      </h5>
+                      <p className="mt-1 font-sans text-[0.85rem] text-[#5C5A53] leading-[1.5] line-clamp-2">
+                        {asset.caption}
+                      </p>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </motion.article>
+          ))
         )}
-      </section>
+          </section>
+        </div>
+      </div>
 
-      {/* Consultation Banner */}
-      <section className="max-w-7xl mx-auto px-6 md:px-12 mt-20">
-        <div className="rounded-3xl bg-[#0C0A09] text-white p-8 sm:p-12 relative overflow-hidden shadow-2xl">
-          <div className="relative z-10 max-w-2xl space-y-4">
-            <span className="px-3 py-1 rounded-full bg-[#EDA81C] text-white text-xs font-sans uppercase tracking-widest font-bold inline-block">
-              TECHNICAL ADVISORY & CONSULTING
-            </span>
-            <h2 className="font-serif text-3xl sm:text-4xl text-[#FBF9F5] leading-tight font-bold">
-              Ready to execute complex engineering with zero field surprises?
+      {/* ─── Consultation banner ─── */}
+      <section className="border-t border-[#DDD9CE] bg-[#EDEBE3]">
+        <div className="relative overflow-hidden max-w-[1600px] mx-auto px-[7vw] py-[110px] lg:py-[140px]">
+          <div
+            className="absolute inset-0 opacity-[0.03] pointer-events-none"
+            style={{
+              backgroundImage:
+                'linear-gradient(to right, rgba(20,20,18,0.9) 1px, transparent 1px), linear-gradient(to bottom, rgba(20,20,18,0.9) 1px, transparent 1px)',
+              backgroundSize: '48px 48px'
+            }}
+          />
+          <div className="relative z-10 max-w-2xl">
+            <div className="flex items-center gap-4">
+              <motion.span
+                initial={{ scaleX: 0 }}
+                whileInView={{ scaleX: 1 }}
+                viewport={{ once: true, margin: '-20% 0px -20% 0px' }}
+                transition={{ duration: 0.9, ease: EASE }}
+                className="block h-px w-8 bg-[#C98A2D] origin-left"
+              />
+              <motion.span
+                initial={{ opacity: 0, y: 8 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-20% 0px -20% 0px' }}
+                transition={{ duration: 0.6, ease: 'easeOut' }}
+                className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#8A877E]"
+              >
+                07 / Engage the Practice
+              </motion.span>
+            </div>
+
+            <h2 className="mt-6 font-sans font-medium text-[#141412] tracking-[-0.02em] leading-[1.08] text-[clamp(2.4rem,4vw,3.4rem)]">
+              Initiate Project Consultation.
             </h2>
-            <p className="text-sm sm:text-base text-[#D6D3D1] font-normal leading-relaxed">
-              Connect directly with our Chennai technical directorate for structural review,
-              BIM federated modeling audits, offshore platform engineering, or custom IT tooling.
+            <p className="mt-5 max-w-[480px] font-sans text-[1rem] leading-[1.6] text-[#5C5A53]">
+              Connect directly with our Chennai technical directorate for structural review, BIM
+              federated modeling audits, offshore platform engineering, or custom IT tooling.
             </p>
-            <div className="pt-2 flex flex-wrap items-center gap-4">
+
+            <div className="mt-10 flex flex-wrap items-center gap-8">
               <button
                 type="button"
                 onClick={() => onNavigateToContact()}
-                className="px-6 py-3.5 rounded-xl bg-[#EDA81C] hover:bg-[#D49110] text-white font-sans uppercase tracking-wider text-xs font-bold transition-all inline-flex items-center gap-2 shadow-md cursor-pointer"
+                className="group inline-flex items-center gap-2.5 rounded-[2px] bg-[#141412] text-[#F5F4EE] px-9 py-5 font-mono text-[11px] uppercase tracking-[0.14em] transition-colors duration-300 cursor-pointer"
               >
-                <span>Initiate Project Consultation</span>
-                <ArrowUpRight className="w-4 h-4" />
+                <span className="whitespace-nowrap">Initiate Consultation</span>
+                <ArrowRight className="w-4 h-4 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-[6px]" />
               </button>
               <button
                 type="button"
                 onClick={onNavigateHome}
-                className="px-6 py-3.5 rounded-xl border border-white/20 hover:border-white text-white font-sans uppercase tracking-wider text-xs font-bold transition-all inline-flex items-center gap-2 cursor-pointer"
+                className="group inline-flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#141412] hover:text-black transition-colors cursor-pointer"
               >
-                <span>Return to Home</span>
+                <ArrowLeft className="w-4 h-4 transition-transform duration-300 group-hover:-translate-x-1" />
+                <span className="whitespace-nowrap">Return to Home</span>
               </button>
             </div>
           </div>
-          {/* Subtle background blueprint grid */}
-          <div
-            className="absolute inset-0 opacity-10 pointer-events-none"
-            style={{
-              backgroundImage:
-                'radial-gradient(circle at 1px 1px, #FFF 1px, transparent 0)',
-              backgroundSize: '24px 24px'
-            }}
-          />
         </div>
       </section>
 
-      {/* High-Resolution Asset Inspector Lightbox Modal */}
+      {/* ─── High-resolution asset inspector ─── */}
       <AnimatePresence>
-        {activeAssetModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-10 bg-[#0C0A09]/80 backdrop-blur-xl">
+        {modal && activeAsset && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            onClick={closeModal}
+            className="fixed inset-0 z-50 bg-[rgba(20,20,18,0.92)] backdrop-blur-[24px] p-4 sm:p-[40px] flex"
+          >
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.3 }}
-              className="relative w-full max-w-5xl max-h-[90vh] backdrop-blur-2xl bg-white/95 rounded-3xl border border-white/80 shadow-[0_25px_50px_rgb(0,0,0,0.25)] overflow-hidden flex flex-col"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 12 }}
+              transition={{ duration: 0.4, ease: EASE }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative m-auto w-full h-full flex flex-col"
             >
-              {/* Modal Header */}
-              <div className="p-5 sm:p-6 bg-[#FAF6F0]/80 border-b border-white/80 flex items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#EDA81C] text-white text-[10px] font-sans uppercase tracking-widest font-bold">
-                      {activeAssetModal.domainCode}
-                    </span>
-                    <span className="text-xs font-sans font-bold text-[#57534E]">
-                      {activeAssetModal.domainTitle}
-                    </span>
-                  </div>
-                  <h3 className="font-serif text-lg sm:text-xl text-[#0C0A09] font-bold">
-                    {activeAssetModal.asset.title}
-                  </h3>
+              {/* Top bar */}
+              <div className="flex items-baseline justify-between gap-6 border-b border-white/10 py-4">
+                <div className="min-w-0">
+                  <p className="font-sans text-[0.95rem] text-[#F5F4EE] truncate">
+                    {activeAsset.title}
+                  </p>
+                  <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.14em] text-[#A8A49B]">
+                    FIG {modal.domain.number}.1 · {activeAsset.tag || modal.domain.code} ·{' '}
+                    {activeAsset.type.toUpperCase()}
+                  </p>
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveAssetModal(null)}
-                  className="p-2.5 rounded-full hover:bg-[#EAE5DC] text-[#57534E] hover:text-[#0C0A09] transition-colors cursor-pointer"
-                  aria-label="Close modal"
-                >
-                  <X className="w-5 h-5" />
-                </button>
+                <div className="flex items-center gap-6 shrink-0">
+                  <a
+                    href={activeAsset.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#F5F4EE] hover:text-[#C98A2D] transition-colors cursor-pointer"
+                  >
+                    Download <span aria-hidden="true">↓</span>
+                  </a>
+                  <button
+                    type="button"
+                    onClick={closeModal}
+                    className="inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#F5F4EE] hover:text-[#C98A2D] transition-colors cursor-pointer"
+                  >
+                    Close <span aria-hidden="true">✕</span>
+                  </button>
+                </div>
               </div>
 
-              {/* Modal Media Display */}
-              <div className="flex-1 overflow-auto bg-[#0C0A09] flex items-center justify-center p-4 relative min-h-[350px] sm:min-h-[450px]">
+              {/* Image */}
+              <div className="flex-1 min-h-0 flex items-center justify-center border border-white/10 py-6">
                 <img
-                  src={activeAssetModal.asset.url}
-                  alt={activeAssetModal.asset.title}
-                  className="max-w-full max-h-[60vh] object-contain rounded-2xl shadow-xl"
+                  src={activeAsset.url}
+                  alt={activeAsset.title}
+                  className="max-w-full max-h-full object-contain"
                   referrerPolicy="no-referrer"
                 />
               </div>
 
-              {/* Modal Footer / Description */}
-              <div className="p-5 sm:p-6 bg-white/95 border-t border-white/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="max-w-2xl">
-                  <p className="text-xs sm:text-sm text-[#292524] font-medium leading-relaxed">
-                    {activeAssetModal.asset.caption}
-                  </p>
-                  <p className="text-[11px] font-sans font-medium text-[#78716C] mt-1">
-                    Authentic Deweg Engineering asset source: static.wixstatic.com
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-3 shrink-0">
-                  <a
-                    href={activeAssetModal.asset.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="px-4 py-2 rounded-xl bg-[#FFF9ED] border border-[#DDD6CC] text-[#0C0A09] hover:bg-[#EAE5DC] text-xs font-sans font-bold uppercase tracking-wider inline-flex items-center gap-1.5 transition-colors cursor-pointer"
-                  >
-                    <span>Raw Full-Res</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
+              {/* Bottom bar */}
+              <div className="flex items-center justify-end gap-6 border-t border-white/10 py-4">
+                <span className="font-mono text-[11px] tracking-[0.14em] text-[#F5F4EE]">
+                  {pad(modal.index + 1)} / {pad(galTotal)}
+                </span>
+                <div className="flex items-center gap-6">
                   <button
                     type="button"
-                    onClick={() => {
-                      const title = activeAssetModal.domainTitle;
-                      setActiveAssetModal(null);
-                      onNavigateToContact(title);
-                    }}
-                    className="px-4 py-2 rounded-xl bg-[#EDA81C] text-white hover:bg-[#D49110] text-xs font-sans font-bold uppercase tracking-wider inline-flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+                    onClick={() => moveModal(-1)}
+                    aria-label="Previous asset"
+                    className="font-mono text-[11px] tracking-[0.14em] text-[#F5F4EE] hover:text-[#C98A2D] transition-colors cursor-pointer"
                   >
-                    <span>Consult on Domain</span>
-                    <ArrowUpRight className="w-3.5 h-3.5" />
+                    ←
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => moveModal(1)}
+                    aria-label="Next asset"
+                    className="font-mono text-[11px] tracking-[0.14em] text-[#F5F4EE] hover:text-[#C98A2D] transition-colors cursor-pointer"
+                  >
+                    →
                   </button>
                 </div>
               </div>
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

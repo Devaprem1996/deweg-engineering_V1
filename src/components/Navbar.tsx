@@ -123,7 +123,7 @@ export default function Navbar({ activePage = 'home', onNavigate, onOpenConsulta
               href="#contact"
               id="nav-cta-btn"
               onClick={(e) => handleLinkClick(e, { page: 'home', href: '#contact' })}
-              className="ml-3 inline-flex items-center gap-2 rounded-xl border border-[#EDA81C] px-4 py-2 text-xs font-sans font-bold uppercase tracking-wider text-[#0C0A09] bg-white/80 hover:bg-[#EDA81C] hover:text-[#0C0A09] transition-all duration-300 shadow-xs group cursor-pointer"
+              className="ml-3 inline-flex items-center gap-2 rounded-xl border border-[#EDA81C] px-4 py-2 text-[11px] sm:text-xs font-sans font-bold uppercase tracking-wider text-[#0C0A09] bg-white/80 hover:bg-[#EDA81C] hover:text-[#0C0A09] transition-all duration-300 shadow-xs group cursor-pointer"
             >
               <span>Engage Firm</span>
               <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
@@ -197,7 +197,7 @@ export default function Navbar({ activePage = 'home', onNavigate, onOpenConsulta
               <a
                 href="#contact"
                 onClick={(e) => handleLinkClick(e, { page: 'home', href: '#contact' })}
-                className="mt-2 inline-flex items-center justify-center w-full py-3 bg-[#EDA81C] text-[#0C0A09] font-sans font-bold uppercase tracking-wider text-xs rounded-xl shadow-md"
+                className="mt-2 inline-flex items-center justify-center w-full py-3 bg-[#EDA81C] text-[#0C0A09] font-sans font-bold uppercase tracking-wider text-[11px] sm:text-xs rounded-xl shadow-md"
               >
                 Initiate Project Brief
               </a>

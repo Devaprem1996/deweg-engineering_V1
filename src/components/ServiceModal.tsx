@@ -40,7 +40,7 @@ export default function ServiceModal({ service, onClose }: ServiceModalProps) {
             {/* Top Bar */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-[#E7E1D8] bg-[#F5F0E8]">
               <div className="flex items-center gap-3">
-                <span className="font-serif text-lg font-bold text-[#C4703F]">{service.number}</span>
+                <span className="font-serif text-lg font-bold text-[#EDA81C]">{service.number}</span>
                 <span className="text-[11px] uppercase tracking-[0.25em] text-[#78716C] font-sans font-bold">
                   Domain Specification & Reference Repository
                 </span>
@@ -58,7 +58,7 @@ export default function ServiceModal({ service, onClose }: ServiceModalProps) {
               {/* Header */}
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="px-2.5 py-0.5 rounded text-[11px] font-mono font-bold text-[#C4703F] bg-[#F5F0E8] border border-[#E7E1D8]">
+                  <span className="px-2.5 py-0.5 rounded text-[11px] font-mono font-bold text-[#EDA81C] bg-[#F5F0E8] border border-[#E7E1D8]">
                     {service.officialCode || service.id.toUpperCase()}
                   </span>
                   {assets.length > 0 && (
@@ -70,14 +70,14 @@ export default function ServiceModal({ service, onClose }: ServiceModalProps) {
                 <h2 className="font-serif text-3xl sm:text-4xl text-[#1C1917] tracking-tight">
                   {service.title}
                 </h2>
-                <p className="mt-2 text-sm sm:text-base text-[#C4703F] font-serif italic font-medium">
+                <p className="mt-2 text-sm sm:text-base text-[#EDA81C] font-serif italic font-medium">
                   "{service.tagline}"
                 </p>
 
                 {/* Reference Philosophy */}
                 {service.referencePhilosophy && (
                   <div className="mt-4 p-3.5 rounded-xl bg-[#FAF8F5] border border-[#EFE9DF] text-xs sm:text-sm text-[#44403C] font-sans leading-relaxed">
-                    <span className="font-semibold text-[#C4703F]">Philosophy & Execution Intent: </span>
+                    <span className="font-semibold text-[#EDA81C]">Philosophy & Execution Intent: </span>
                     {service.referencePhilosophy}
                   </div>
                 )}
@@ -91,7 +91,7 @@ export default function ServiceModal({ service, onClose }: ServiceModalProps) {
               {assets.length > 0 && (
                 <div>
                   <h3 className="font-serif text-xl text-[#1C1917] mb-3 flex items-center gap-2 font-semibold">
-                    <Film className="w-5 h-5 text-[#C4703F]" />
+                    <Film className="w-5 h-5 text-[#EDA81C]" />
                     <span>Reference Assets & Models ({assets.length})</span>
                   </h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -99,7 +99,7 @@ export default function ServiceModal({ service, onClose }: ServiceModalProps) {
                       <div
                         key={asset.id}
                         onClick={() => setActiveAsset(asset)}
-                        className="group relative aspect-16/10 rounded-lg overflow-hidden border border-[#E7E1D8] bg-[#1C1917] cursor-pointer hover:border-[#C4703F] transition-all hover:scale-[1.02]"
+                        className="group relative aspect-16/10 rounded-lg overflow-hidden border border-[#E7E1D8] bg-[#1C1917] cursor-pointer hover:border-[#EDA81C] transition-all hover:scale-[1.02]"
                       >
                         <img
                           src={asset.posterUrl || asset.url}
@@ -109,8 +109,8 @@ export default function ServiceModal({ service, onClose }: ServiceModalProps) {
                         />
                         {asset.type === 'video' && (
                           <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                            <div className="w-8 h-8 rounded-full bg-[#C4703F] flex items-center justify-center shadow-md">
-                              <Play className="w-3.5 h-3.5 text-white fill-white translate-x-0.5" />
+                            <div className="w-8 h-8 rounded-full bg-[#EDA81C] flex items-center justify-center shadow-md">
+                              <Play className="w-3.5 h-3.5 text-[#0C0A09] fill-[#0C0A09] translate-x-0.5" />
                             </div>
                           </div>
                         )}
@@ -133,13 +133,13 @@ export default function ServiceModal({ service, onClose }: ServiceModalProps) {
               {/* Scope of Engineering Works */}
               <div>
                 <h3 className="font-serif text-xl text-[#1C1917] mb-3 flex items-center gap-2 font-semibold">
-                  <ShieldCheck className="w-5 h-5 text-[#C4703F]" />
+                  <ShieldCheck className="w-5 h-5 text-[#EDA81C]" />
                   <span>Scope of Technical Operations</span>
                 </h3>
                 <ul className="space-y-2.5">
                   {service.detailedScope.map((item, i) => (
                     <li key={i} className="flex items-start gap-3 text-xs sm:text-sm text-[#57534E] font-sans">
-                      <CheckCircle2 className="w-4 h-4 text-[#C4703F] shrink-0 mt-0.5" />
+                      <CheckCircle2 className="w-4 h-4 text-[#EDA81C] shrink-0 mt-0.5" />
                       <span>{item}</span>
                     </li>
                   ))}
@@ -148,14 +148,14 @@ export default function ServiceModal({ service, onClose }: ServiceModalProps) {
 
               {/* Deliverables */}
               <div className="p-5 rounded-xl bg-[#F5F0E8] border border-[#E7E1D8]">
-                <h4 className="text-xs uppercase tracking-[0.2em] text-[#C4703F] font-sans font-bold mb-3 flex items-center gap-2">
+                <h4 className="text-xs uppercase tracking-[0.2em] text-[#EDA81C] font-sans font-bold mb-3 flex items-center gap-2">
                   <FileText className="w-4 h-4" />
                   <span>Deliverables & Certification Output</span>
                 </h4>
                 <ul className="space-y-2">
                   {service.deliverables.map((del, i) => (
                     <li key={i} className="text-xs text-[#1C1917] font-sans flex items-center gap-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#C4703F]" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#EDA81C]" />
                       <span>{del}</span>
                     </li>
                   ))}
@@ -167,7 +167,7 @@ export default function ServiceModal({ service, onClose }: ServiceModalProps) {
                 <a
                   href="#contact"
                   onClick={onClose}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-[#C4703F] text-white text-xs uppercase tracking-wider font-semibold rounded-lg hover:bg-[#A65A2E] transition-colors shadow-sm"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-[#EDA81C] text-[#0C0A09] text-[11px] sm:text-xs uppercase tracking-wider font-semibold rounded-lg hover:bg-[#F4BC3E] transition-colors shadow-sm text-center"
                 >
                   <span>Request Scope Consultation</span>
                   <ArrowRight className="w-3.5 h-3.5" />

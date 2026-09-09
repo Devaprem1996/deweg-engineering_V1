@@ -25,10 +25,9 @@ import ReferenceAssetViewer from './ReferenceAssetViewer';
 
 interface ServicesSectionProps {
   onSelectService: (service: Service) => void;
-  onViewExpertisePage?: () => void;
 }
 
-export default function ServicesSection({ onSelectService, onViewExpertisePage }: ServicesSectionProps) {
+export default function ServicesSection({ onSelectService }: ServicesSectionProps) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'cards' | 'gallery'>('cards');
@@ -51,21 +50,21 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
   const getServiceIcon = (iconName: string) => {
     switch (iconName) {
       case 'Briefcase':
-        return <Briefcase className="w-5 h-5 text-[#C4703F]" />;
+        return <Briefcase className="w-5 h-5 text-[#EDA81C]" />;
       case 'Layers':
-        return <Layers className="w-5 h-5 text-[#C4703F]" />;
+        return <Layers className="w-5 h-5 text-[#EDA81C]" />;
       case 'Compass':
-        return <Compass className="w-5 h-5 text-[#C4703F]" />;
+        return <Compass className="w-5 h-5 text-[#EDA81C]" />;
       case 'Cpu':
-        return <Cpu className="w-5 h-5 text-[#C4703F]" />;
+        return <Cpu className="w-5 h-5 text-[#EDA81C]" />;
       case 'Shield':
-        return <Shield className="w-5 h-5 text-[#C4703F]" />;
+        return <Shield className="w-5 h-5 text-[#EDA81C]" />;
       case 'Zap':
-        return <Zap className="w-5 h-5 text-[#C4703F]" />;
+        return <Zap className="w-5 h-5 text-[#EDA81C]" />;
       case 'Code':
-        return <Code className="w-5 h-5 text-[#C4703F]" />;
+        return <Code className="w-5 h-5 text-[#EDA81C]" />;
       default:
-        return <Layers className="w-5 h-5 text-[#C4703F]" />;
+        return <Layers className="w-5 h-5 text-[#EDA81C]" />;
     }
   };
 
@@ -112,10 +111,10 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
             <div>
               <div className="flex items-center gap-2.5 flex-wrap">
-                <span className="text-xs uppercase tracking-[0.25em] text-[#C4703F] font-sans font-semibold">
+                <span className="text-xs uppercase tracking-[0.25em] text-[#EDA81C] font-sans font-semibold">
                   DEWEG DISCIPLINES & REFERENCE REPOSITORY
                 </span>
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-medium text-[#C4703F] bg-[#C4703F]/10 border border-[#C4703F]/20">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-medium text-[#EDA81C] bg-[#EDA81C]/10 border border-[#EDA81C]/20">
                   {totalAssetsCount} Verified Models & Assets
                 </span>
               </div>
@@ -128,23 +127,20 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
               <p className="text-[#57534E] text-sm sm:text-base font-sans font-normal leading-relaxed">
                 7 integrated engineering practices bridging computational FEA analysis, LOD 500 digital twins, Tekla structural steel detailing, and high-definition video simulations collected directly from our active reference archive.
               </p>
-              {onViewExpertisePage && (
-                <button
-                  type="button"
-                  onClick={onViewExpertisePage}
-                  className="shrink-0 px-4 py-2.5 rounded-lg bg-[#C4703F] text-white hover:bg-[#A65A2E] transition-all text-xs font-mono uppercase tracking-wider inline-flex items-center gap-2 shadow-xs cursor-pointer"
-                >
-                  <span>Explore Expertise Page</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
-              )}
+              <a
+                href="#contact"
+                className="shrink-0 px-4 py-2.5 rounded-lg bg-[#EDA81C] text-[#0C0A09] hover:bg-[#F4BC3E] transition-all text-[11px] sm:text-xs font-mono uppercase tracking-wider inline-flex items-center gap-2 shadow-xs cursor-pointer"
+              >
+                <span>Discuss Engineering Brief</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </a>
             </div>
           </div>
 
           {/* Reference Asset Metrics Strip with Glassmorphism */}
           <div className="mt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 p-5 rounded-2xl backdrop-blur-xl bg-white/75 border border-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
             <div className="p-3 border-r border-[#F0EBE1] last:border-r-0">
-              <div className="flex items-center gap-2 text-[#C4703F] text-xs font-mono font-bold uppercase tracking-wider">
+              <div className="flex items-center gap-2 text-[#EDA81C] text-xs font-mono font-bold uppercase tracking-wider">
                 <FileCheck className="w-3.5 h-3.5" />
                 <span>7 Core Disciplines</span>
               </div>
@@ -153,7 +149,7 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
               </p>
             </div>
             <div className="p-3 border-r border-[#F0EBE1] last:border-r-0">
-              <div className="flex items-center gap-2 text-[#C4703F] text-xs font-mono font-bold uppercase tracking-wider">
+              <div className="flex items-center gap-2 text-[#EDA81C] text-xs font-mono font-bold uppercase tracking-wider">
                 <Film className="w-3.5 h-3.5" />
                 <span>Advanced Simulation</span>
               </div>
@@ -162,7 +158,7 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
               </p>
             </div>
             <div className="p-3 border-r border-[#F0EBE1] last:border-r-0">
-              <div className="flex items-center gap-2 text-[#C4703F] text-xs font-mono font-bold uppercase tracking-wider">
+              <div className="flex items-center gap-2 text-[#EDA81C] text-xs font-mono font-bold uppercase tracking-wider">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>LOD 100–500 BIM</span>
               </div>
@@ -171,7 +167,7 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
               </p>
             </div>
             <div className="p-3">
-              <div className="flex items-center gap-2 text-[#C4703F] text-xs font-mono font-bold uppercase tracking-wider">
+              <div className="flex items-center gap-2 text-[#EDA81C] text-xs font-mono font-bold uppercase tracking-wider">
                 <ImageIcon className="w-3.5 h-3.5" />
                 <span>Precision Detailing</span>
               </div>
@@ -191,7 +187,7 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
               className={`px-4 py-2 rounded-xl text-xs font-sans font-bold transition-all whitespace-nowrap cursor-pointer ${
                 selectedCategory === 'all'
                   ? 'bg-[#0C0A09] text-white shadow-md'
-                  : 'bg-white/80 backdrop-blur-md text-[#292524] hover:text-[#0C0A09] border border-white/80 hover:border-[#C4703F] shadow-xs'
+                  : 'bg-white/80 backdrop-blur-md text-[#292524] hover:text-[#0C0A09] border border-white/80 hover:border-[#EDA81C] shadow-xs'
               }`}
             >
               All Domains (7)
@@ -204,8 +200,8 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
                   onClick={() => setSelectedCategory(s.id)}
                   className={`px-3.5 py-2 rounded-xl text-xs font-sans font-bold transition-all whitespace-nowrap flex items-center gap-1.5 cursor-pointer ${
                     isSelected
-                      ? 'bg-[#C4703F] text-white shadow-md'
-                      : 'bg-white/80 backdrop-blur-md text-[#292524] hover:text-[#0C0A09] border border-white/80 hover:border-[#C4703F] shadow-xs'
+                      ? 'bg-[#EDA81C] text-[#0C0A09] shadow-md'
+                      : 'bg-white/80 backdrop-blur-md text-[#292524] hover:text-[#0C0A09] border border-white/80 hover:border-[#EDA81C] shadow-xs'
                   }`}
                 >
                   <span className="font-mono text-[10px] opacity-90">{s.officialCode}</span>
@@ -227,7 +223,7 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
               }`}
               title="Discipline Cards View"
             >
-              <LayoutGrid className="w-3.5 h-3.5 text-[#C4703F]" />
+              <LayoutGrid className="w-3.5 h-3.5 text-[#EDA81C]" />
               <span>Cards</span>
             </button>
             <button
@@ -240,7 +236,7 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
               }`}
               title="Reference Asset Visual Gallery"
             >
-              <Film className="w-3.5 h-3.5 text-[#C4703F]" />
+              <Film className="w-3.5 h-3.5 text-[#EDA81C]" />
               <span>Reference Media Gallery ({filteredGalleryAssets.length})</span>
             </button>
           </div>
@@ -265,11 +261,11 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
                   transition={{ duration: 0.5, delay: idx * 0.06 }}
                   onMouseEnter={() => setHoveredId(service.id)}
                   onMouseLeave={() => setHoveredId(null)}
-                  className="group relative flex flex-col justify-between p-7 sm:p-8 rounded-2xl backdrop-blur-xl bg-white/85 border border-white/80 shadow-[0_10px_35px_rgb(0,0,0,0.04)] transition-all duration-300 hover:border-[#C4703F]/60 hover:shadow-[0_20px_45px_rgb(0,0,0,0.08)] hover:-translate-y-1"
+                  className="group relative flex flex-col justify-between p-7 sm:p-8 rounded-2xl backdrop-blur-xl bg-white/85 border border-white/80 shadow-[0_10px_35px_rgb(0,0,0,0.04)] transition-all duration-300 hover:border-[#EDA81C]/60 hover:shadow-[0_20px_45px_rgb(0,0,0,0.08)] hover:-translate-y-1"
                 >
                   {/* Top accent hairline */}
                   <div 
-                    className={`absolute top-0 left-6 right-6 h-[2px] bg-[#C4703F] transition-opacity duration-300 rounded-t-full ${
+                    className={`absolute top-0 left-6 right-6 h-[2px] bg-[#EDA81C] transition-opacity duration-300 rounded-t-full ${
                       isHovered ? 'opacity-100' : 'opacity-0'
                     }`}
                   />
@@ -278,14 +274,14 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
                     {/* Number & Icon header */}
                     <div className="flex items-center justify-between mb-5 pb-4 border-b border-[#F0EBE1]">
                       <div className="flex items-center gap-2">
-                        <span className="font-serif text-2xl text-[#C4703F] font-semibold">
+                        <span className="font-serif text-2xl text-[#EDA81C] font-semibold">
                           {service.number}
                         </span>
-                        <span className="px-2.5 py-0.5 text-[11px] font-mono font-bold text-[#C4703F] bg-[#F5F0E8] rounded-md border border-[#E7E1D8] uppercase tracking-wider">
+                        <span className="px-2.5 py-0.5 text-[11px] font-mono font-bold text-[#EDA81C] bg-[#F5F0E8] rounded-md border border-[#E7E1D8] uppercase tracking-wider">
                           {service.officialCode || service.id.toUpperCase()}
                         </span>
                       </div>
-                      <div className="w-12 h-12 p-2 rounded-xl bg-white/80 border border-white/80 shadow-xs flex items-center justify-center group-hover:bg-[#C4703F]/10 group-hover:border-[#C4703F]/40 transition-colors">
+                      <div className="w-12 h-12 p-2 rounded-xl bg-white/80 border border-white/80 shadow-xs flex items-center justify-center group-hover:bg-[#EDA81C]/10 group-hover:border-[#EDA81C]/40 transition-colors">
                         {service.svgIconUrl ? (
                           <img
                             src={service.svgIconUrl}
@@ -300,19 +296,19 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
                     </div>
 
                     {/* Service Title with High Visibility */}
-                    <h3 className="font-serif text-xl sm:text-2xl text-[#0C0A09] tracking-tight group-hover:text-[#C4703F] transition-colors leading-snug font-semibold">
+                    <h3 className="font-serif text-xl sm:text-2xl text-[#0C0A09] tracking-tight group-hover:text-[#EDA81C] transition-colors leading-snug font-semibold">
                       {service.title}
                     </h3>
 
                     {/* Tagline */}
-                    <p className="mt-2 text-xs italic text-[#C4703F] font-serif font-medium">
+                    <p className="mt-2 text-xs italic text-[#EDA81C] font-serif font-medium">
                       "{service.tagline}"
                     </p>
 
                     {/* Verbatim Philosophy from Reference Page with Glass Box */}
                     {service.referencePhilosophy && (
                       <div className="mt-3.5 p-3.5 rounded-xl bg-white/60 backdrop-blur-md border border-white/70 text-[12px] font-sans text-[#292524] leading-relaxed">
-                        <span className="text-[#C4703F] font-bold">Engineering Intent: </span>
+                        <span className="text-[#EDA81C] font-bold">Engineering Intent: </span>
                         {service.referencePhilosophy}
                       </div>
                     )}
@@ -327,7 +323,7 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
                       <div className="mt-5 pt-4 border-t border-[#F0EBE1]">
                         <div className="flex items-center justify-between mb-2.5">
                           <span className="text-[11px] font-sans font-bold uppercase tracking-wider text-[#0C0A09] flex items-center gap-1.5">
-                            <Film className="w-3.5 h-3.5 text-[#C4703F]" />
+                            <Film className="w-3.5 h-3.5 text-[#EDA81C]" />
                             <span>Visual Deliverables ({assets.length})</span>
                           </span>
                         </div>
@@ -339,7 +335,7 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
                               key={asset.id}
                               type="button"
                               onClick={() => handleOpenAsset(asset, service)}
-                              className="group/thumb relative aspect-4/3 rounded-lg overflow-hidden border border-white/80 bg-[#F5F0E8] hover:border-[#C4703F] transition-all hover:scale-105 cursor-pointer shadow-xs"
+                              className="group/thumb relative aspect-4/3 rounded-lg overflow-hidden border border-white/80 bg-[#F5F0E8] hover:border-[#EDA81C] transition-all hover:scale-105 cursor-pointer shadow-xs"
                               title={`${asset.title} - Click to inspect`}
                             >
                               <img
@@ -353,7 +349,7 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
                                   <Play className="w-3.5 h-3.5 text-white fill-white" />
                                 </div>
                               )}
-                              <div className="absolute inset-0 bg-[#C4703F]/20 opacity-0 group-hover/thumb:opacity-100 transition-opacity" />
+                              <div className="absolute inset-0 bg-[#EDA81C]/20 opacity-0 group-hover/thumb:opacity-100 transition-opacity" />
                             </button>
                           ))}
                         </div>
@@ -367,7 +363,7 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
                           key={i}
                           className="inline-flex items-center gap-1 text-[11px] text-[#0C0A09] font-medium bg-white/70 backdrop-blur-xs px-2.5 py-1 rounded-md border border-white/80 shadow-xs"
                         >
-                          <CheckCircle className="w-3 h-3 text-[#C4703F] shrink-0" />
+                          <CheckCircle className="w-3 h-3 text-[#EDA81C] shrink-0" />
                           <span className="truncate max-w-[170px]">{item}</span>
                         </div>
                       ))}
@@ -380,9 +376,9 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
                       <button
                         type="button"
                         onClick={() => handleOpenAsset(assets[0], service)}
-                        className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-3.5 rounded-xl bg-white/80 backdrop-blur-md hover:bg-white text-xs font-sans font-bold text-[#0C0A09] border border-white/80 hover:border-[#C4703F] transition-all shadow-xs cursor-pointer"
+                        className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-3.5 rounded-xl bg-white/80 backdrop-blur-md hover:bg-white text-xs font-sans font-bold text-[#0C0A09] border border-white/80 hover:border-[#EDA81C] transition-all shadow-xs cursor-pointer"
                       >
-                        <Maximize2 className="w-3.5 h-3.5 text-[#C4703F]" />
+                        <Maximize2 className="w-3.5 h-3.5 text-[#EDA81C]" />
                         <span>Inspect Interactive Deliverables ({assets.length})</span>
                       </button>
                     )}
@@ -390,11 +386,11 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
                     <button
                       type="button"
                       onClick={() => onSelectService(service)}
-                      className="inline-flex items-center justify-between text-xs font-sans uppercase tracking-[0.16em] font-bold text-[#0C0A09] hover:text-[#C4703F] transition-colors w-full text-left py-1 cursor-pointer"
+                      className="inline-flex items-center justify-between text-xs font-sans uppercase tracking-[0.16em] font-bold text-[#0C0A09] hover:text-[#EDA81C] transition-colors w-full text-left py-1 cursor-pointer"
                       aria-label={`Detailed Scope for ${service.title}`}
                     >
                       <span>Detailed Scope & Standards</span>
-                      <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 transform group-hover:translate-x-1.5 text-[#C4703F]" />
+                      <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 transform group-hover:translate-x-1.5 text-[#EDA81C]" />
                     </button>
                   </div>
                 </motion.div>
@@ -419,7 +415,7 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
                 onClick={() => setViewMode('cards')}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F5F0E8] text-xs font-sans font-medium text-[#1C1917] hover:bg-[#EAE4D9] transition-colors"
               >
-                <LayoutGrid className="w-3.5 h-3.5 text-[#C4703F]" />
+                <LayoutGrid className="w-3.5 h-3.5 text-[#EDA81C]" />
                 <span>Return to Cards</span>
               </button>
             </div>
@@ -433,7 +429,7 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.35, delay: idx * 0.04 }}
                     onClick={() => handleOpenAsset(asset)}
-                    className="group cursor-pointer flex flex-col justify-between rounded-xl bg-white border border-[#E7E1D8] overflow-hidden hover:border-[#C4703F] hover:shadow-lg transition-all"
+                    className="group cursor-pointer flex flex-col justify-between rounded-xl bg-white border border-[#E7E1D8] overflow-hidden hover:border-[#EDA81C] hover:shadow-lg transition-all"
                   >
                     {/* Media Preview Box */}
                     <div className="relative aspect-16/10 bg-[#0C0A09] overflow-hidden">
@@ -450,7 +446,7 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
                           {asset.serviceCode}
                         </span>
                         {asset.type === 'video' && (
-                          <span className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#C4703F] text-white">
+                          <span className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#EDA81C] text-[#0C0A09]">
                             <Film className="w-2.5 h-2.5" />
                             1080p Video
                           </span>
@@ -466,7 +462,7 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
                       {/* Video Play Overlay */}
                       {asset.type === 'video' && (
                         <div className="absolute inset-0 bg-black/30 flex items-center justify-center group-hover:bg-black/40 transition-colors">
-                          <div className="w-11 h-11 rounded-full bg-[#C4703F] text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                          <div className="w-11 h-11 rounded-full bg-[#EDA81C] text-[#0C0A09] flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                             <Play className="w-5 h-5 fill-white translate-x-0.5" />
                           </div>
                         </div>
@@ -476,7 +472,7 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
                       {asset.type !== 'video' && (
                         <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                           <div className="w-9 h-9 rounded-full bg-white/90 text-[#1C1917] flex items-center justify-center shadow-md">
-                            <Maximize2 className="w-4 h-4 text-[#C4703F]" />
+                            <Maximize2 className="w-4 h-4 text-[#EDA81C]" />
                           </div>
                         </div>
                       )}
@@ -488,10 +484,10 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
                         <div className="flex items-center justify-between gap-2 text-[10.5px] text-[#78716C] font-mono mb-1">
                           <span>{asset.fileName || 'Reference Model'}</span>
                           {asset.resolution && (
-                            <span className="text-[#C4703F] font-semibold">{asset.resolution}</span>
+                            <span className="text-[#EDA81C] font-semibold">{asset.resolution}</span>
                           )}
                         </div>
-                        <h4 className="font-serif text-sm sm:text-base font-medium text-[#1C1917] group-hover:text-[#C4703F] transition-colors line-clamp-2">
+                        <h4 className="font-serif text-sm sm:text-base font-medium text-[#1C1917] group-hover:text-[#EDA81C] transition-colors line-clamp-2">
                           {asset.title}
                         </h4>
                         {asset.caption && (
@@ -501,7 +497,7 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
                         )}
                       </div>
 
-                      <div className="mt-3 pt-2.5 border-t border-[#F0EBE1] flex items-center justify-between text-xs text-[#C4703F] font-medium font-sans">
+                      <div className="mt-3 pt-2.5 border-t border-[#F0EBE1] flex items-center justify-between text-xs text-[#EDA81C] font-medium font-sans">
                         <span>{asset.type === 'video' ? 'Play Simulation' : 'Inspect Drawing'}</span>
                         <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
                       </div>
@@ -516,7 +512,7 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
         {/* Technical capability banner footer with Glassmorphism */}
         <div className="mt-14 p-6 sm:p-8 rounded-2xl backdrop-blur-xl bg-white/80 border border-white/80 flex flex-col md:flex-row items-center justify-between gap-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
           <div className="flex items-center gap-4">
-            <div className="w-3 h-3 rounded-full bg-[#C4703F] shrink-0" />
+            <div className="w-3 h-3 rounded-full bg-[#EDA81C] shrink-0" />
             <div>
               <h4 className="text-sm font-bold text-[#0C0A09]">
                 Multi-Discipline Coordination & Audits
@@ -528,7 +524,7 @@ export default function ServicesSection({ onSelectService, onViewExpertisePage }
           </div>
           <a
             href="#contact"
-            className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#C4703F] text-white text-xs font-sans uppercase tracking-[0.18em] font-bold hover:bg-[#A65A2E] transition-colors shrink-0 shadow-md hover:shadow-lg"
+            className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-[#EDA81C] text-[#0C0A09] text-[11px] sm:text-xs font-sans uppercase tracking-[0.18em] font-bold hover:bg-[#F4BC3E] transition-colors shrink-0 shadow-md hover:shadow-lg text-center"
           >
             <span>Discuss Engineering Brief</span>
             <ArrowRight className="w-3.5 h-3.5" />

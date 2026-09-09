@@ -1,9 +1,84 @@
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Send, CheckCircle, MapPin, Phone, Mail, Clock, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Check, Lock } from 'lucide-react';
 import { COMPANY_DETAILS } from '../data/engineeringData';
 import { ContactFormData } from '../types';
-import { AnimatedHeading } from './AnimatedText';
+
+const MUTED = '#8A877E';
+const INK = '#141412';
+const ACCENT = '#C98A2D';
+const EASE = [0.16, 1, 0.3, 1] as const;
+
+const correspondence = [
+  {
+    index: '01',
+    title: 'Registered Office',
+    lines: [COMPANY_DETAILS.address],
+    meta: `CIN ${COMPANY_DETAILS.cin}`
+  },
+  {
+    index: '02',
+    title: 'Telephone',
+    links: [
+      { href: `tel:${COMPANY_DETAILS.phone}`, label: COMPANY_DETAILS.phone },
+      { href: `tel:${COMPANY_DETAILS.mobile}`, label: COMPANY_DETAILS.mobile }
+    ]
+  },
+  {
+    index: '03',
+    title: 'Electronic',
+    links: [
+      { href: `mailto:${COMPANY_DETAILS.email}`, label: COMPANY_DETAILS.email },
+      { href: `mailto:${COMPANY_DETAILS.careersEmail}`, label: COMPANY_DETAILS.careersEmail }
+    ]
+  },
+  {
+    index: '04',
+    title: 'Operating Hours',
+    lines: [COMPANY_DETAILS.workingHours]
+  }
+];
+
+interface FieldShellProps {
+  id: string;
+  label: string;
+  required?: boolean;
+  focused: boolean;
+  children: React.ReactNode;
+}
+
+const EASE_DC = { duration: 0.3, ease: EASE };
+
+function FieldShell({ id, label, required, focused, children }: FieldShellProps) {
+  return (
+    <div className="relative">
+      <label
+        htmlFor={id}
+        className={`block text-[11px] font-mono uppercase tracking-[0.12em] transition-colors duration-300 mb-1 ${
+          focused ? 'text-[#141412]' : 'text-[#8A877E]'
+        }`}
+      >
+        {label}
+        {required && <span className="ml-1 text-[#C98A2D]">*</span>}
+      </label>
+      <div className="relative">
+        {children}
+        {/* Accent underline draws in on focus */}
+        <span className="pointer-events-none absolute bottom-0 left-0 right-0 h-[2px]">
+          <motion.span
+            className="block h-full w-full origin-left bg-[#C98A2D]"
+            initial={false}
+            animate={{ scaleX: focused ? 1 : 0 }}
+            transition={EASE_DC}
+          />
+        </span>
+      </div>
+    </div>
+  );
+}
+
+const fieldClass =
+  'w-full bg-transparent border-b border-[#D9D6CC] focus:border-[#141412] outline-none px-0 py-3.5 text-[1.05rem] text-[#141412] placeholder:text-[#B0ACA2] transition-colors duration-300';
 
 export default function ContactSection() {
   const [formData, setFormData] = useState<ContactFormData>({
@@ -17,12 +92,26 @@ export default function ContactSection() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setReducedMotion(mq.matches);
+    const onChange = (e: MediaQueryListEvent) => setReducedMotion(e.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
+  }, []);
+
+  // Transient success state — button eases to accent for 2s, then resets
+  useEffect(() => {
+    if (!isSuccess) return;
+    const timer = setTimeout(() => setIsSuccess(false), 2000);
+    return () => clearTimeout(timer);
+  }, [isSuccess]);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-
-    // Simulate real submission
     setTimeout(() => {
       setIsSubmitting(false);
       setIsSuccess(true);
@@ -46,325 +135,347 @@ export default function ContactSection() {
     'Information Technology Solutions (IT Automation)'
   ];
 
+  const headline = 'Commence engagement.'.split(' ');
+  const fieldIdx = (n: number) => 0.15 + n * 0.05;
+
   return (
     <section
       id="contact"
-      className="relative bg-transparent text-[#0C0A09] py-20 md:py-28 lg:py-32"
+      className="relative bg-[#F1EFE9] text-[#141412] py-[100px] lg:py-[140px] overflow-hidden"
     >
-      <div className="max-w-7xl mx-auto px-6 md:px-12">
-        
-        {/* Section Header */}
-        <div className="max-w-3xl mb-14">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="w-6 h-[2px] bg-[#EDA81C]" />
-            <span className="text-xs uppercase tracking-[0.25em] font-sans font-bold text-[#EDA81C]">
-              COMMENCE ENGAGEMENT
-            </span>
-          </div>
-
-          <AnimatedHeading
-            text={COMPANY_DETAILS.journeyText}
-            highlightWord="Journey"
-            highlightClass="text-[#EDA81C]"
-            className="font-serif text-3xl sm:text-5xl md:text-6xl text-[#0C0A09] font-bold tracking-tight leading-[1.12]"
+      <div className="max-w-[1600px] mx-auto px-[6vw] lg:px-[7vw]">
+        {/* Eyebrow with drawing rule */}
+        <div className="flex items-center gap-5 mb-16 origin-left">
+          <motion.span
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            viewport={{ once: true, margin: '-20% 0px -20% 0px' }}
+            transition={{ duration: 0.9, ease: EASE }}
+            className="block h-px w-10 bg-[#E0DDD3] shrink-0"
           />
-
-          <p className="mt-5 text-base sm:text-lg text-[#292524] font-sans font-normal leading-relaxed">
-            Whether you require peer review validation, heavy industrial Tekla steel detailing, or turnkey PMC oversight, our directors and chartered consultants are ready to review your parameters.
-          </p>
+          <motion.span
+            initial={{ opacity: 0, y: 8 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-20% 0px -20% 0px' }}
+            transition={{ duration: 0.7, ease: 'easeOut' }}
+            className="text-[11px] font-mono uppercase tracking-[0.14em] text-[#8A877E]"
+          >
+            06 / Commence Engagement
+          </motion.span>
         </div>
 
-        {/* 2-Column Layout: Form & Detailed Contact Matrix */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
-          
-          {/* Left Column: Glassmorphic Contact Form (7 cols) */}
-          <div className="lg:col-span-7 rounded-3xl backdrop-blur-xl bg-white/85 border border-white/80 p-8 sm:p-12 shadow-xl">
-            
-            <AnimatePresence mode="wait">
-              {isSuccess ? (
-                <motion.div
-                  key="success-box"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="py-12 flex flex-col items-center text-center"
-                >
-                  <div className="w-16 h-16 rounded-2xl bg-[#FFF9ED] text-[#EDA81C] flex items-center justify-center mb-6 border border-[#EDA81C]/40">
-                    <CheckCircle className="w-8 h-8" />
-                  </div>
-                  <h3 className="font-serif text-2xl text-[#0C0A09] font-bold">
-                    Project Ingestion Initiated
-                  </h3>
-                  <p className="mt-3 text-sm text-[#292524] font-sans max-w-md leading-relaxed">
-                    Thank you. Your project brief has been assigned to our structural design team in Chennai. A senior partner will review your specifications and follow up within 24 business hours.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => setIsSuccess(false)}
-                    className="mt-8 px-7 py-3 text-xs uppercase tracking-widest bg-[#EDA81C] text-[#0C0A09] font-bold rounded-xl hover:bg-[#D49110] transition-colors shadow-sm cursor-pointer"
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+          {/* Left column (span 5): headline + intro + correspondence */}
+          <div className="lg:col-span-5">
+            <h2
+              aria-label="Commence engagement."
+              className="font-sans font-medium text-[#141412] leading-[1.05] tracking-[-0.03em] text-[clamp(2.6rem,4.5vw,4.2rem)]"
+            >
+              {headline.map((word, i) => (
+                <span key={`${word}-${i}`} className="inline-block overflow-hidden align-top">
+                  <motion.span
+                    initial={{ y: '100%', opacity: 0 }}
+                    whileInView={{ y: '0%', opacity: 1 }}
+                    viewport={{ once: true, margin: '-20% 0px -20% 0px' }}
+                    transition={{ duration: 0.7, delay: i * 0.08, ease: EASE }}
+                    className="inline-block"
                   >
-                    Submit Another Brief
-                  </button>
+                    {word}&nbsp;
+                  </motion.span>
+                </span>
+              ))}
+            </h2>
+
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-20% 0px -20% 0px' }}
+              transition={{ duration: 0.7, delay: 0.3, ease: EASE }}
+              className="mt-6 max-w-[440px] font-sans text-[1.05rem] leading-[1.6] text-[#5C5A53]"
+            >
+              Peer review validation, heavy industrial Tekla steel detailing, or turnkey PMC
+              oversight — our directors and chartered consultants are ready to review your
+              parameters.
+            </motion.p>
+
+            {/* Correspondence list */}
+            <div className="mt-10">
+              {correspondence.map((block, i) => (
+                <motion.div
+                  key={block.index}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-20% 0px -20% 0px' }}
+                  transition={{ duration: 0.6, delay: i * 0.06, ease: EASE }}
+                  className="border-t border-[#E0DDD3] py-5 first:hover:border-[#C98A2D]"
+                >
+                  <p className="font-mono text-[11px] tracking-[0.1em] text-[#A8A49B]">
+                    {block.index}
+                  </p>
+                  <h3 className="mt-1 font-sans text-[0.95rem] font-medium text-[#141412]">
+                    {block.title}
+                  </h3>
+                  <div className="mt-1 font-sans text-[0.95rem] font-normal text-[#5C5A53] leading-[1.6]">
+                    {block.links
+                      ? block.links.map((link) => (
+                          <a
+                            key={link.href}
+                            href={link.href}
+                            className="relative inline-flex items-start text-[#141412] overflow-hidden transition-colors duration-300 hover:text-[#C98A2D]"
+                          >
+                            <span className="relative after:absolute after:left-0 after:bottom-[1px] after:h-px after:w-full after:origin-left after:scale-x-0 after:bg-[#C98A2D] after:transition-transform after:duration-300 hover:after:scale-x-100">
+                              {link.label}
+                            </span>
+                          </a>
+                        ))
+                      : block.lines?.map((line) => <p key={line}>{line}</p>)}
+                    {block.meta && (
+                      <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.1em] text-[#A8A49B]">
+                        {block.meta}
+                      </p>
+                    )}
+                  </div>
                 </motion.div>
-              ) : (
-                <form key="contact-form" onSubmit={handleSubmit} className="space-y-7">
-                  
-                  {/* Name Input */}
+              ))}
+            </div>
+          </div>
+
+          {/* Right column (span 6, offset 1): underline-only form */}
+          <div className="lg:col-span-6 lg:col-start-7">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-10">
+              {/* Full name */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-15% 0px -15% 0px' }}
+                transition={{ duration: 0.6, delay: fieldIdx(0), ease: EASE }}
+              >
+                <FieldShell
+                  id="contact-name"
+                  label="Full Name"
+                  required
+                  focused={focusedField === 'name'}
+                >
+                  <input
+                    type="text"
+                    id="contact-name"
+                    required
+                    placeholder="e.g. Julian Sterling"
+                    value={formData.name}
+                    onFocus={() => setFocusedField('name')}
+                    onBlur={() => setFocusedField(null)}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    className={fieldClass}
+                  />
+                </FieldShell>
+              </motion.div>
+
+              {/* Email + phone */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-15% 0px -15% 0px' }}
+                transition={{ duration: 0.6, delay: fieldIdx(1), ease: EASE }}
+                className="grid grid-cols-1 sm:grid-cols-2 gap-8"
+              >
+                <FieldShell
+                  id="contact-email"
+                  label="Corporate Email"
+                  required
+                  focused={focusedField === 'email'}
+                >
+                  <input
+                    type="email"
+                    id="contact-email"
+                    required
+                    placeholder="julian@enterprise.com"
+                    value={formData.email}
+                    onFocus={() => setFocusedField('email')}
+                    onBlur={() => setFocusedField(null)}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className={fieldClass}
+                  />
+                </FieldShell>
+                <FieldShell
+                  id="contact-phone"
+                  label="Telephone / WhatsApp"
+                  focused={focusedField === 'phone'}
+                >
+                  <input
+                    type="tel"
+                    id="contact-phone"
+                    placeholder="+91 98408 55422"
+                    value={formData.phone}
+                    onFocus={() => setFocusedField('phone')}
+                    onBlur={() => setFocusedField(null)}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className={fieldClass}
+                  />
+                </FieldShell>
+              </motion.div>
+
+              {/* Discipline select */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-15% 0px -15% 0px' }}
+                transition={{ duration: 0.6, delay: fieldIdx(2), ease: EASE }}
+              >
+                <FieldShell
+                  id="contact-project-type"
+                  label="Primary Engineering Discipline"
+                  required
+                  focused={focusedField === 'type'}
+                >
                   <div className="relative">
-                    <label
-                      htmlFor="contact-name"
-                      className="block text-xs uppercase tracking-[0.2em] font-sans font-bold text-[#0C0A09] mb-2"
-                    >
-                      Full Name *
-                    </label>
-                    <input
-                      type="text"
-                      id="contact-name"
-                      required
-                      placeholder="e.g. Julian Sterling"
-                      value={formData.name}
-                      onFocus={() => setFocusedField('name')}
-                      onBlur={() => setFocusedField(null)}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className={`w-full px-4 py-3.5 rounded-xl bg-white/90 border text-sm text-[#0C0A09] placeholder:text-[#A8A29E] font-sans transition-all focus:outline-none ${
-                        focusedField === 'name'
-                          ? 'border-[#EDA81C] ring-2 ring-[#EDA81C]/20 shadow-xs'
-                          : 'border-[#E7E1D8] hover:border-[#D6CEC2]'
-                      }`}
-                    />
-                  </div>
-
-                  {/* Two-Column: Email & Phone */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="relative">
-                      <label
-                        htmlFor="contact-email"
-                        className="block text-xs uppercase tracking-[0.2em] font-sans font-bold text-[#0C0A09] mb-2"
-                      >
-                        Corporate Email *
-                      </label>
-                      <input
-                        type="email"
-                        id="contact-email"
-                        required
-                        placeholder="julian@enterprise.com"
-                        value={formData.email}
-                        onFocus={() => setFocusedField('email')}
-                        onBlur={() => setFocusedField(null)}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className={`w-full px-4 py-3.5 rounded-xl bg-white/90 border text-sm text-[#0C0A09] placeholder:text-[#A8A29E] font-sans transition-all focus:outline-none ${
-                          focusedField === 'email'
-                            ? 'border-[#EDA81C] ring-2 ring-[#EDA81C]/20 shadow-xs'
-                            : 'border-[#E7E1D8] hover:border-[#D6CEC2]'
-                        }`}
-                      />
-                    </div>
-
-                    <div className="relative">
-                      <label
-                        htmlFor="contact-phone"
-                        className="block text-xs uppercase tracking-[0.2em] font-sans font-bold text-[#0C0A09] mb-2"
-                      >
-                        Telephone / WhatsApp
-                      </label>
-                      <input
-                        type="tel"
-                        id="contact-phone"
-                        placeholder="+91 98408 55422"
-                        value={formData.phone}
-                        onFocus={() => setFocusedField('phone')}
-                        onBlur={() => setFocusedField(null)}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className={`w-full px-4 py-3.5 rounded-xl bg-white/90 border text-sm text-[#0C0A09] placeholder:text-[#A8A29E] font-sans transition-all focus:outline-none ${
-                          focusedField === 'phone'
-                            ? 'border-[#EDA81C] ring-2 ring-[#EDA81C]/20 shadow-xs'
-                            : 'border-[#E7E1D8] hover:border-[#D6CEC2]'
-                        }`}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Project Discipline Selection */}
-                  <div>
-                    <label
-                      htmlFor="contact-project-type"
-                      className="block text-xs uppercase tracking-[0.2em] font-sans font-bold text-[#0C0A09] mb-2"
-                    >
-                      Primary Engineering Discipline *
-                    </label>
                     <select
                       id="contact-project-type"
                       value={formData.projectType}
                       onFocus={() => setFocusedField('type')}
                       onBlur={() => setFocusedField(null)}
                       onChange={(e) => setFormData({ ...formData, projectType: e.target.value })}
-                      className={`w-full px-4 py-3.5 rounded-xl bg-white/90 border text-sm text-[#0C0A09] font-sans transition-all focus:outline-none cursor-pointer ${
-                        focusedField === 'type'
-                          ? 'border-[#EDA81C] ring-2 ring-[#EDA81C]/20 shadow-xs'
-                          : 'border-[#E7E1D8] hover:border-[#D6CEC2]'
-                      }`}
+                      className={`${fieldClass} appearance-none pr-6 cursor-pointer`}
                     >
                       {projectTypes.map((type) => (
-                        <option key={type} value={type} className="text-[#0C0A09] py-1">
+                        <option key={type} value={type} className="bg-white text-[#141412] py-1">
                           {type}
                         </option>
                       ))}
                     </select>
-                  </div>
-
-                  {/* Project Parameters Message */}
-                  <div>
-                    <label
-                      htmlFor="contact-message"
-                      className="block text-xs uppercase tracking-[0.2em] font-sans font-bold text-[#0C0A09] mb-2"
+                    {/* Thin 1px line chevron */}
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none absolute right-0 top-1/2 -translate-y-[70%] flex flex-col items-center gap-[3px]"
                     >
-                      Project Specifications &amp; Scope *
-                    </label>
-                    <textarea
-                      id="contact-message"
-                      rows={4}
-                      required
-                      placeholder="Outline site location, building archetype, structural tonnage estimate, codes required (e.g. IS / AISC), target schedule, and file attachments..."
-                      value={formData.message}
-                      onFocus={() => setFocusedField('msg')}
-                      onBlur={() => setFocusedField(null)}
-                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      className={`w-full px-4 py-3.5 rounded-xl bg-white/90 border text-sm text-[#0C0A09] placeholder:text-[#A8A29E] font-sans transition-all focus:outline-none resize-none ${
-                        focusedField === 'msg'
-                          ? 'border-[#EDA81C] ring-2 ring-[#EDA81C]/20 shadow-xs'
-                          : 'border-[#E7E1D8] hover:border-[#D6CEC2]'
-                      }`}
-                    />
+                      <span className="block w-[7px] h-[7px] -rotate-45 border-b border-r border-[#141412]" />
+                      <span className="block w-[7px] h-[7px] -rotate-45 border-b border-r border-[#141412]" />
+                    </span>
                   </div>
+                </FieldShell>
+              </motion.div>
 
-                  {/* Submission Button & Disclaimer */}
-                  <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl bg-[#EDA81C] text-[#0C0A09] font-sans text-xs uppercase tracking-[0.2em] font-bold hover:bg-[#D49110] transition-all shadow-md cursor-pointer disabled:opacity-50"
-                    >
-                      <span>{isSubmitting ? 'Transmitting Specs...' : 'Dispatch Project Dossier'}</span>
-                      <Send className="w-4 h-4 text-[#0C0A09]" />
-                    </button>
+              {/* Scope textarea */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-15% 0px -15% 0px' }}
+                transition={{ duration: 0.6, delay: fieldIdx(3), ease: EASE }}
+              >
+                <FieldShell
+                  id="contact-message"
+                  label="Project Specifications & Scope"
+                  required
+                  focused={focusedField === 'msg'}
+                >
+                  <textarea
+                    id="contact-message"
+                    rows={4}
+                    required
+                    placeholder="Outline site location, building archetype, structural tonnage estimate, codes required (e.g. IS / AISC), target schedule, and file attachments..."
+                    value={formData.message}
+                    onFocus={() => setFocusedField('msg')}
+                    onBlur={() => setFocusedField(null)}
+                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    className={`${fieldClass} min-h-[120px] resize-none leading-[1.6]`}
+                  />
+                </FieldShell>
+              </motion.div>
 
-                    <p className="text-[11px] text-[#78716C] font-sans flex items-center gap-1.5">
-                      <ShieldCheck className="w-4 h-4 text-[#EDA81C]" />
-                      Confidentiality &amp; NDA protocols strictly maintained.
-                    </p>
-                  </div>
+              {/* CTA + NDA — NDA on its own line, below the button */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-15% 0px -15% 0px' }}
+                transition={{ duration: 0.6, delay: fieldIdx(4), ease: EASE }}
+              >
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`group inline-flex items-center justify-center gap-3 px-9 py-5 rounded-[2px] text-[11px] font-mono uppercase tracking-[0.14em] transition-colors duration-500 cursor-pointer disabled:opacity-60 ${
+                    isSuccess ? 'bg-[#C98A2D] text-[#F6F5F0]' : 'bg-[#141412] text-[#F6F5F0]'
+                  }`}
+                >
+                  <AnimatePresence mode="wait" initial={false}>
+                    {isSuccess ? (
+                      <motion.span
+                        key="ok"
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3, ease: EASE }}
+                        className="inline-flex items-center gap-2.5 whitespace-nowrap"
+                      >
+                        <Check className="w-4 h-4" />
+                        Dossier Dispatched — We Respond Within 24h
+                      </motion.span>
+                    ) : (
+                      <motion.span
+                        key="dispatch"
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.3, ease: EASE }}
+                        className="inline-flex items-center gap-2.5 whitespace-nowrap"
+                      >
+                        <span>{isSubmitting ? 'Transmitting...' : 'Dispatch Project Dossier'}</span>
+                        <ArrowRight className="w-4 h-4 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-[6px]" />
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
+                </button>
 
-                </form>
-              )}
-            </AnimatePresence>
-
+                <p className="mt-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.14em] text-[#8A877E]">
+                  <Lock className="w-3 h-3" />
+                  NDA &amp; confidentiality protocols enforced.
+                </p>
+              </motion.div>
+            </form>
           </div>
-
-          {/* Right Column: Contact Details + Cartography (5 cols) */}
-          <div className="lg:col-span-5 space-y-6">
-            
-            {/* Contact Details Card with Glassmorphism */}
-            <div className="p-8 rounded-3xl backdrop-blur-xl bg-white/85 border border-white/80 space-y-6 shadow-xl">
-              <div className="flex items-center justify-between pb-3 border-b border-[#F0EBE1]">
-                <h3 className="font-serif text-2xl text-[#0C0A09] font-bold">Registered Office</h3>
-                <span className="text-xs font-sans font-bold px-3 py-1 rounded-full bg-[#FFF9ED] text-[#EDA81C] border border-[#EDA81C]/30">
-                  Chennai HQ
-                </span>
-              </div>
-
-              <div className="space-y-5 text-sm text-[#292524] font-sans">
-                <div className="flex items-start gap-3.5">
-                  <MapPin className="w-5 h-5 text-[#EDA81C] shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-bold text-[#0C0A09]">Office Address</p>
-                    <p className="text-xs text-[#292524] mt-0.5 leading-relaxed font-normal">
-                      {COMPANY_DETAILS.address}
-                    </p>
-                    <p className="text-[11px] font-sans font-medium text-[#EDA81C] mt-1.5">
-                      CIN: {COMPANY_DETAILS.cin}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3.5">
-                  <Phone className="w-5 h-5 text-[#EDA81C] shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-bold text-[#0C0A09]">Telephone &amp; Mobile</p>
-                    <p className="text-xs text-[#292524] mt-0.5">
-                      Main Desk: <a href={`tel:${COMPANY_DETAILS.phone}`} className="hover:text-[#EDA81C] font-semibold">{COMPANY_DETAILS.phone}</a>
-                    </p>
-                    <p className="text-xs text-[#292524] mt-0.5">
-                      Direct Mobile: <a href={`tel:${COMPANY_DETAILS.mobile}`} className="hover:text-[#EDA81C] font-semibold">{COMPANY_DETAILS.mobile}</a>
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3.5">
-                  <Mail className="w-5 h-5 text-[#EDA81C] shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-bold text-[#0C0A09]">Electronic Communications</p>
-                    <p className="text-xs text-[#292524] mt-0.5">
-                      Consulting: <a href={`mailto:${COMPANY_DETAILS.email}`} className="hover:text-[#EDA81C] font-semibold">{COMPANY_DETAILS.email}</a>
-                    </p>
-                    <p className="text-xs text-[#292524] mt-0.5">
-                      Careers: <a href={`mailto:${COMPANY_DETAILS.careersEmail}`} className="hover:text-[#EDA81C] font-semibold">{COMPANY_DETAILS.careersEmail}</a>
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3.5">
-                  <Clock className="w-5 h-5 text-[#EDA81C] shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-bold text-[#0C0A09]">Operating Hours</p>
-                    <p className="text-xs text-[#292524] mt-0.5 leading-relaxed font-normal">
-                      {COMPANY_DETAILS.workingHours}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Embedded Architectural Map Placeholder */}
-            <div className="relative aspect-[16/10] rounded-3xl overflow-hidden backdrop-blur-xl bg-white/80 border border-white/80 shadow-xl group">
-              {/* Light SVG stylized architectural cartography */}
-              <div className="absolute inset-0 opacity-90">
-                <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <pattern id="light-grid" width="36" height="36" patternUnits="userSpaceOnUse">
-                      <path d="M 36 0 L 0 0 0 36" fill="none" stroke="#E5DFD4" strokeWidth="1" />
-                    </pattern>
-                  </defs>
-                  <rect width="100%" height="100%" fill="#FBF9F5" />
-                  <rect width="100%" height="100%" fill="url(#light-grid)" />
-                  {/* Stylized arterial roads */}
-                  <path d="M -20 80 Q 150 120 300 90 T 600 130" stroke="#E7E1D8" strokeWidth="6" fill="none" />
-                  <path d="M 120 -20 Q 180 140 220 300" stroke="#E7E1D8" strokeWidth="8" fill="none" />
-                  <path d="M 80 260 L 400 60" stroke="#EDA81C" strokeWidth="2" strokeDasharray="5 5" fill="none" opacity="0.6" />
-                </svg>
-              </div>
-
-              {/* Pinpoint & Location Marker */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
-                <div className="relative">
-                  <div className="w-4 h-4 rounded-full bg-[#EDA81C] animate-ping opacity-60 absolute" />
-                  <div className="w-4 h-4 rounded-full bg-[#EDA81C] border-2 border-white relative z-10 shadow-md" />
-                </div>
-                <div className="mt-2.5 px-4 py-1.5 bg-white/95 rounded-xl border border-white/80 text-xs font-sans font-bold text-[#0C0A09] shadow-md whitespace-nowrap">
-                  Deweg Engineering • Chennai HQ
-                </div>
-              </div>
-
-              {/* Map Footer Overlay with Glassmorphism */}
-              <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-xs font-sans font-medium text-[#292524] bg-white/90 px-4 py-2 rounded-xl backdrop-blur-md border border-white/80">
-                <span>12.9479° N, 80.1563° E</span>
-                <span className="text-[#EDA81C] font-bold">Chitlapakkam / Chennai</span>
-              </div>
-            </div>
-
-          </div>
-
         </div>
 
+        {/* Bottom full-width strip: light printed site plan */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-10% 0px -10% 0px' }}
+          transition={{ duration: 0.8, ease: EASE }}
+          className="relative h-[300px] lg:h-[320px] mt-20 overflow-hidden rounded-[2px] border border-[#E0DDD3] bg-[#EFEEE8]"
+        >
+          {/* Faint technical grid */}
+          <div
+            className="absolute inset-0 opacity-[0.04] pointer-events-none"
+            style={{
+              backgroundImage:
+                'linear-gradient(to right, rgba(20,20,18,0.8) 1px, transparent 1px), linear-gradient(to bottom, rgba(20,20,18,0.8) 1px, transparent 1px)',
+              backgroundSize: '40px 40px'
+            }}
+          />
+          {/* Printed site plan linework */}
+          <svg className="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
+            <path d="M -20 60 Q 140 90 300 70 T 700 110 T 1200 90" stroke="#D9D6CC" strokeWidth="1" fill="none" />
+            <path d="M 80 -20 Q 140 160 200 340" stroke="#D9D6CC" strokeWidth="1" fill="none" />
+            <path d="M 350 320 L 980 -10" stroke="#E0DDD3" strokeWidth="1" fill="none" />
+            <path d="M 60 200 L 600 40" stroke="#C98A2D" strokeWidth="1" strokeDasharray="6 6" fill="none" opacity="0.7" />
+          </svg>
+
+          {/* Pin + pulse ring */}
+          <div className="absolute top-1/2 left-[52%] -translate-x-1/2 -translate-y-1/2">
+            {!reducedMotion && (
+              <motion.span
+                className="absolute inset-0 -m-3 rounded-full border border-[#C98A2D]"
+                initial={{ opacity: 0.4, scale: 0.6 }}
+                animate={{ opacity: 0, scale: 1.6 }}
+                transition={{ duration: 3, repeat: Infinity, ease: 'easeOut' }}
+              />
+            )}
+            <span className="relative block w-3 h-3 rounded-full bg-[#141412]" />
+          </div>
+
+          {/* Caption */}
+          <div className="absolute bottom-4 left-4 font-mono text-[11px] uppercase tracking-[0.14em] text-[#8A877E]">
+            [ Registered Office — Chengalpattu, Tamil Nadu ]
+          </div>
+        </motion.div>
       </div>
     </section>
   );

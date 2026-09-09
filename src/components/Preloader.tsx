@@ -30,7 +30,6 @@ export default function Preloader({ onComplete }: PreloaderProps) {
 
   return (
     <AnimatePresence>
-      {stage !== 'done' && (
         <motion.div
           key="preloader"
           initial={{ y: 0 }}
@@ -57,7 +56,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
               <h1 className="font-serif text-5xl sm:text-7xl md:text-8xl tracking-tight text-[#1C1917]">
                 DE WEG
               </h1>
-              <span className="w-2.5 h-2.5 rounded-full bg-[#C4703F] mb-3" />
+              <span className="w-2.5 h-2.5 rounded-full bg-[#EDA81C] mb-3" />
             </motion.div>
 
             <motion.div
@@ -67,7 +66,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
               className="mt-4 flex items-center gap-3 text-xs tracking-[0.35em] text-[#78716C] uppercase font-sans font-medium"
             >
               <span>Engineering</span>
-              <span className="inline-block w-1 h-1 rounded-full bg-[#C4703F]" />
+              <span className="inline-block w-1 h-1 rounded-full bg-[#EDA81C]" />
               <span>To Define The Path</span>
             </motion.div>
 
@@ -76,7 +75,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
               className="mt-10 h-[2px] bg-[#E2DACF] w-48 overflow-hidden rounded-full"
             >
               <motion.div
-                className="h-full bg-[#C4703F]"
+                className="h-full bg-[#EDA81C]"
                 initial={{ width: '0%' }}
                 animate={{ width: '100%' }}
                 transition={{ duration: 1.2, ease: 'easeInOut' }}
@@ -84,7 +83,6 @@ export default function Preloader({ onComplete }: PreloaderProps) {
             </motion.div>
           </div>
         </motion.div>
-      )}
     </AnimatePresence>
   );
 }

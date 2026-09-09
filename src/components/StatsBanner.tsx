@@ -41,9 +41,12 @@ function AnimatedCounter({ value, suffix }: CounterProps) {
   }, [isInView, value]);
 
   return (
-    <span ref={ref} className="font-serif font-bold tabular-nums text-4xl sm:text-6xl lg:text-7xl text-[#0C0A09] tracking-tight">
+    <span
+      ref={ref}
+      className="font-sans font-medium tabular-nums tracking-[-0.03em] leading-[1] text-[#111111] text-[clamp(2.75rem,4.5vw,4rem)]"
+    >
       {count}
-      <span className="text-[#EDA81C] text-3xl sm:text-5xl lg:text-6xl ml-0.5 font-normal">{suffix}</span>
+      <span className="text-[#EDA81C] text-[0.55em] font-normal align-super">{suffix}</span>
     </span>
   );
 }
@@ -52,55 +55,42 @@ export default function StatsBanner() {
   return (
     <section
       id="stats-banner"
-      className="relative bg-transparent text-[#0C0A09] py-16 sm:py-24 overflow-hidden"
+      className="relative bg-transparent text-[#111111] py-16 sm:py-24 overflow-hidden"
     >
-      <div className="max-w-7xl mx-auto px-6 md:px-12 relative z-10">
-        
-        {/* Section Tag */}
-        <div className="flex items-center justify-center gap-3 mb-10 text-center">
-          <span className="w-8 h-[2px] bg-[#EDA81C]" />
-          <span className="text-xs uppercase tracking-[0.25em] text-[#EDA81C] font-sans font-bold">
-            PROVEN TRACK RECORD • NUMERICAL INTEGRITY
+      <div className="max-w-7xl mx-auto px-6 md:px-12">
+        {/* Section tag */}
+        <div className="flex items-center justify-center gap-5 mb-12 text-center">
+          <span className="w-10 h-[2px] bg-[#E5E3DC]" />
+          <span className="text-[11px] font-mono uppercase tracking-[0.28em] text-[#8A8580]">
+            PROVEN TRACK RECORD · NUMERICAL INTEGRITY
           </span>
-          <span className="w-8 h-[2px] bg-[#EDA81C]" />
+          <span className="w-10 h-[2px] bg-[#E5E3DC]" />
         </div>
 
-        {/* 4 Animated Counters in Glassmorphic Container */}
-        <div className="rounded-3xl backdrop-blur-xl bg-white/80 border border-white/90 p-8 sm:p-12 shadow-xl">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+        {/* Open hairline strip of counters */}
+        <div className="border-t border-b border-black/10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y divide-black/10 sm:divide-y-0 sm:divide-x">
             {STATS_DATA.map((item, idx) => (
               <motion.div
                 key={item.id}
                 initial={{ opacity: 0, y: 25 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-50px' }}
-                transition={{ duration: 0.7, delay: idx * 0.1 }}
-                className="relative flex flex-col items-center text-center p-2 sm:p-4"
+                transition={{ duration: 0.7, delay: idx * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                className="relative flex flex-col items-center justify-center text-center py-10 lg:py-14 px-6"
               >
-                {/* Counter Display */}
-                <div className="mb-3">
-                  <AnimatedCounter value={item.value} suffix={item.suffix} />
-                </div>
-
-                {/* Stat Label */}
-                <h3 className="font-sans text-xs sm:text-sm font-bold text-[#0C0A09] uppercase tracking-[0.15em]">
+                <AnimatedCounter value={item.value} suffix={item.suffix} />
+                <div className="w-7 h-[2px] bg-[#EDA81C] mt-4" />
+                <h3 className="mt-4 font-mono text-[11px] uppercase tracking-[0.2em] text-[#111111]">
                   {item.label}
                 </h3>
-
-                {/* Explanatory subtitle */}
-                <p className="mt-2 text-xs text-[#292524] font-sans font-medium leading-relaxed max-w-[220px]">
+                <p className="mt-2 font-sans text-[11px] font-normal leading-relaxed text-[#8A8580] max-w-[210px]">
                   {item.detail}
                 </p>
-
-                {/* Subtle divider between cols on desktop */}
-                {idx < STATS_DATA.length - 1 && (
-                  <div className="hidden lg:block absolute right-0 top-1/2 -translate-y-1/2 w-[1px] h-16 bg-[#F0EBE1]" />
-                )}
               </motion.div>
             ))}
           </div>
         </div>
-
       </div>
     </section>
   );

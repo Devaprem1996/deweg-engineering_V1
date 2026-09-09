@@ -1,180 +1,232 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ZoomIn, CheckCircle2, Shield, Wrench, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { OFFICIAL_ASSETS } from '../data/engineeringData';
-import { AnimatedHeading } from './AnimatedText';
+import { AnimatedHeading, Parallax } from './AnimatedText';
 
 export default function FieldExecutionSection() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'fabrication' | 'erection'>('fabrication');
 
-  const images = {
-    fabrication: {
+  const tabs = [
+    {
+      id: 'fabrication' as const,
+      index: '01',
+      label: 'Joint Assembly & Splice',
       url: OFFICIAL_ASSETS.section5ExecutionImg,
       title: 'High-Tolerance Structural Steel Joint Execution',
+      short: 'High-Tolerance Joint Execution',
       desc: 'Live photograph from Deweg Engineering site assembly showing pre-drilled gusset plates, high-strength friction grip (HSFG) bolts, and precision cambered chord interfaces.',
       stats: [
         { label: 'Joint Geometry', value: 'Double Shear Splice' },
-        { label: 'Bolt Specification', value: 'ASTM A325 / IS 3757 Grade 10.9' },
+        { label: 'Bolt Specification', value: 'ASTM A325 / Grade 10.9' },
         { label: 'Tolerance Budget', value: '±1.5 mm across span' },
         { label: 'Non-Destructive Testing', value: '100% Ultrasonic Verified' }
       ]
     },
-    erection: {
-      url: OFFICIAL_ASSETS.structuralErectionImg,
+    {
+      id: 'erection' as const,
+      index: '02',
+      label: 'Truss Crane Erection',
+      url: OFFICIAL_ASSETS.mediaLibrary.craneErection,
       title: 'Long-Span Industrial Roof Truss Assembly',
+      short: 'Long-Span Truss Crane Erection',
       desc: 'Heavy structural crane lift and field alignment for an industrial portal hall. Pre-engineered in Tekla Structures with temporary shoring calculations and rigging safety studies.',
       stats: [
         { label: 'Clear Span Width', value: '54 Metres' },
         { label: 'Assembly Method', value: 'Tandem Crane Lift' },
-        { label: 'Steel Grade', value: 'E350 / S355 Structural Steel' },
+        { label: 'Steel Grade', value: 'E350 / S355' },
         { label: 'On-Site Rework', value: '0.00% Defect-Free' }
       ]
     }
-  };
+  ];
 
-  const current = images[activeTab];
+  const current = tabs.find((t) => t.id === activeTab)!;
 
   return (
     <section
       id="field-execution"
-      className="relative bg-transparent text-[#0C0A09] py-20 md:py-28"
+      className="relative bg-transparent text-[#111111] py-24 md:py-28 lg:py-36"
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12">
-        {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-          <div>
-            <div className="flex items-center gap-2 text-xs uppercase tracking-[0.25em] text-[#EDA81C] font-sans font-bold mb-2">
-              <Wrench className="w-3.5 h-3.5" />
-              <span>Section 05 • Field Execution &amp; Assembly</span>
-            </div>
+        {/* Intro: headline left, statement + tabs right */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
+          <div className="lg:col-span-7">
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.7, ease: 'easeOut' }}
+              className="mb-10 text-[11px] font-mono uppercase tracking-[0.28em] text-[#8A8580]"
+            >
+              Section 05 · Field Execution &amp; Assembly
+            </motion.p>
+
             <AnimatedHeading
-              text="Micro-Tolerance Field Execution"
-              highlightWord="Execution"
-              highlightClass="text-[#EDA81C]"
-              className="font-serif text-3xl sm:text-5xl md:text-6xl text-[#0C0A09] font-bold tracking-tight"
+              text="Field execution, measured in millimeters."
+              className="font-sans font-medium text-[#111111] tracking-[-0.03em] leading-[1.1] text-[clamp(2.5rem,4vw,3.8rem)]"
             />
           </div>
 
-          {/* Tab Selector with Glassmorphism */}
-          <div className="inline-flex p-1.5 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/80 shadow-xs">
-            <button
-              type="button"
-              onClick={() => setActiveTab('fabrication')}
-              className={`px-5 py-2 text-xs font-sans uppercase tracking-[0.16em] font-bold rounded-xl transition-all cursor-pointer ${
-                activeTab === 'fabrication'
-                  ? 'bg-[#EDA81C] text-[#0C0A09] shadow-sm'
-                  : 'text-[#292524] hover:text-[#0C0A09]'
-              }`}
+          <div className="lg:col-span-5 flex flex-col justify-end">
+            <motion.p
+              initial={{ opacity: 0, y: 14 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-60px' }}
+              transition={{ duration: 0.8, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+              className="font-sans text-[1.125rem] leading-[1.6] text-[#555555]"
             >
-              Joint Assembly &amp; Splice
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('erection')}
-              className={`px-5 py-2 text-xs font-sans uppercase tracking-[0.16em] font-bold rounded-xl transition-all cursor-pointer ${
-                activeTab === 'erection'
-                  ? 'bg-[#EDA81C] text-[#0C0A09] shadow-sm'
-                  : 'text-[#292524] hover:text-[#0C0A09]'
-              }`}
-            >
-              Truss Crane Erection
-            </button>
+              On-site photographs, verified tolerances, and erection sequencing — documented live
+              from Deweg's fabrication floors and assembly yards.
+            </motion.p>
+
+            {/* Mono underline tabs */}
+            <div className="mt-10 flex gap-8 flex-wrap">
+              {tabs.map((tab) => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`pb-3 text-[11px] font-mono uppercase tracking-[0.18em] border-b-2 transition-colors duration-300 cursor-pointer ${
+                      isActive
+                        ? 'text-[#111111] border-[#EDA81C]'
+                        : 'text-[#8A8580] border-transparent hover:text-[#111111]'
+                    }`}
+                  >
+                    {tab.index} — {tab.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
 
-        {/* Interactive Image & Specifications Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-          {/* Main Visual Photo with Glassmorphic Framing */}
-          <div className="lg:col-span-8">
+        {/* Full-width field image band — cross-fades on tab switch */}
+        <div className="mt-14 lg:mt-20">
+          <AnimatePresence mode="wait">
             <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, scale: 0.98 }}
+              key={current.id}
+              initial={{ opacity: 0, scale: 0.985 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6 }}
-              className="relative rounded-3xl overflow-hidden bg-white/80 backdrop-blur-2xl border border-white/90 p-3 shadow-xl group"
+              exit={{ opacity: 0, scale: 0.985 }}
+              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
             >
-              <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-stone-900 cursor-pointer" onClick={() => setSelectedImage(current.url)}>
-                <img
-                  src={current.url}
-                  alt={current.title}
-                  className="w-full h-full object-cover filter contrast-[1.05] group-hover:scale-105 transition-transform duration-700"
-                  loading="lazy"
-                  referrerPolicy="no-referrer"
-                />
-
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-
-                {/* Floating Inspection Trigger */}
-                <button
-                  type="button"
-                  className="absolute bottom-4 right-4 z-10 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/90 backdrop-blur-md text-xs font-sans font-bold text-[#0C0A09] hover:bg-[#EDA81C] hover:text-[#0C0A09] shadow-md transition-all cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedImage(current.url);
-                  }}
+              <Parallax offset={24} className="w-full">
+                <div
+                  className="relative aspect-[16/8] lg:aspect-[21/9] overflow-hidden rounded-[6px] bg-[#EBE9E1] border border-[#E2E0D8] cursor-pointer group"
+                  onClick={() => setSelectedImage(current.url)}
                 >
-                  <ZoomIn className="w-3.5 h-3.5" />
-                  <span>Inspect 7000px Ultra-HD</span>
-                </button>
+                  <img
+                    src={current.url}
+                    alt={current.title}
+                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                    loading="lazy"
+                    decoding="async"
+                    referrerPolicy="no-referrer"
+                  />
 
-                <div className="absolute top-4 left-4 z-10 px-3 py-1.5 rounded-full bg-black/60 backdrop-blur-md text-white text-[11px] font-sans font-bold">
-                  On-Site Construction Verification
+                  {/* Legibility wash + cutline */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute bottom-4 left-4 z-10 font-mono text-[11px] uppercase tracking-[0.14em] text-white/85">
+                    FIG 05.{current.index} — {current.short}
+                  </div>
+
+                  {/* Inspect trigger */}
+                  <button
+                    type="button"
+                    className="absolute bottom-4 right-4 z-10 px-3.5 py-2 rounded-[4px] bg-[#111111]/55 backdrop-blur-md border border-white/25 font-mono text-[10px] uppercase tracking-[0.18em] text-white hover:bg-[#EDA81C] hover:text-[#111111] hover:border-[#EDA81C] transition-colors duration-300 cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedImage(current.url);
+                    }}
+                  >
+                    Inspect Full Resolution
+                  </button>
                 </div>
-              </div>
+              </Parallax>
             </motion.div>
+          </AnimatePresence>
+        </div>
+
+        {/* Field readout: title/desc + hairline metric strip */}
+        <div className="mt-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+          <div className="lg:col-span-4">
+            <motion.h3
+              initial={{ opacity: 0, y: 14 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-40px' }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              className="font-sans text-xl sm:text-2xl font-bold tracking-[-0.02em] text-[#111111]"
+            >
+              {current.title}
+            </motion.h3>
+            <motion.p
+              initial={{ opacity: 0, y: 14 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-40px' }}
+              transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+              className="mt-3 font-sans text-[15px] leading-[1.7] text-[#555555]"
+            >
+              {current.desc}
+            </motion.p>
           </div>
 
-          {/* Right Specs Column */}
-          <div className="lg:col-span-4 flex flex-col gap-4">
-            <div className="p-6 sm:p-7 rounded-3xl bg-white/85 backdrop-blur-xl border border-white/90 shadow-md">
-              <h3 className="font-serif text-xl sm:text-2xl text-[#0C0A09] font-bold">
-                {current.title}
-              </h3>
-              <p className="text-xs sm:text-sm text-[#292524] mt-3 leading-relaxed font-normal">
-                {current.desc}
-              </p>
-
-              <div className="mt-6 pt-6 border-t border-stone-200/80 space-y-3.5">
-                {current.stats.map((stat, idx) => (
-                  <div key={idx} className="flex items-start justify-between text-xs">
-                    <span className="text-[#78716C] font-sans">{stat.label}</span>
-                    <span className="font-semibold text-[#0C0A09] text-right font-mono">{stat.value}</span>
+          <div className="lg:col-span-8">
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-40px' }}
+              transition={{ duration: 0.7, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 border border-black/10"
+            >
+              {current.stats.map((stat, idx) => (
+                <div
+                  key={idx}
+                  className={`py-5 px-5 ${
+                    idx > 0 ? 'border-t sm:border-t-0 border-black/10 sm:border-l' : ''
+                  }`}
+                >
+                  <div className="font-mono text-[10px] uppercase tracking-[0.16em] text-[#8A8580]">
+                    {stat.label}
                   </div>
-                ))}
-              </div>
-
-              <div className="mt-6 pt-5 border-t border-stone-200/80 flex items-center gap-2 text-xs text-[#0C0A09] font-bold">
-                <CheckCircle2 className="w-4 h-4 text-[#EDA81C]" />
-                <span>Zero On-Site Re-drilling Guarantee</span>
-              </div>
-            </div>
+                  <div className="mt-2 font-sans text-[15px] font-medium tracking-[-0.01em] text-[#111111]">
+                    {stat.value}
+                  </div>
+                </div>
+              ))}
+            </motion.div>
           </div>
         </div>
       </div>
 
-      {/* Lightbox Modal */}
+      {/* Field inspection lightbox */}
       <AnimatePresence>
         {selectedImage && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 sm:p-8"
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            className="fixed inset-0 z-[11000] bg-[#111111]/95 backdrop-blur-md flex items-center justify-center p-4 sm:p-8"
             onClick={() => setSelectedImage(null)}
           >
             <button
               type="button"
-              className="absolute top-6 right-6 p-3 rounded-full bg-white/20 text-white hover:bg-white hover:text-black transition-colors cursor-pointer"
+              className="absolute top-6 right-6 p-2.5 rounded-full border border-white/20 text-white/70 hover:text-white hover:border-white transition-colors cursor-pointer"
               onClick={() => setSelectedImage(null)}
-              aria-label="Close image inspection"
+              aria-label="Close field inspection"
             >
               <X className="w-6 h-6" />
             </button>
-            <img
+            <motion.img
               src={selectedImage}
-              alt="High resolution inspection"
-              className="max-h-[90vh] max-w-[95vw] object-contain rounded-xl shadow-2xl"
+              alt="High resolution field inspection"
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+              className="max-h-[90vh] max-w-[95vw] object-contain rounded-[4px] border border-white/15 shadow-2xl"
               onClick={(e) => e.stopPropagation()}
             />
           </motion.div>
