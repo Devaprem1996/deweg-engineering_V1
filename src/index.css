@@ -88,6 +88,18 @@ html.lenis, html.lenis body {
   transform-origin: bottom left;
 }
 
+/* Invisible touch-target extension for small text links (< 44px tall) */
+@utility tap-hit {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset-block: -12px;
+    inset-inline: 0;
+  }
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 7px;

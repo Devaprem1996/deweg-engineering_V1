@@ -206,7 +206,7 @@ export default function Footer({ onNavigate }: FooterProps) {
           <button
             type="button"
             onClick={scrollToTop}
-            className="inline-flex items-center gap-2 uppercase tracking-[0.14em] hover:text-black transition-colors duration-200 cursor-pointer"
+            className="inline-flex items-center gap-2 uppercase tracking-[0.14em] hover:text-black transition-colors duration-200 cursor-pointer max-lg:tap-hit"
           >
             ↑ Top
           </button>

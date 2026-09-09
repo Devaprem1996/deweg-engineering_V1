@@ -176,7 +176,7 @@ export default function TestimonialSection() {
             type="button"
             onClick={handlePrev}
             aria-label="Previous testimonial"
-            className="group inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-[#444444] hover:text-[#111111] transition-colors cursor-pointer"
+            className="group inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-[#444444] hover:text-[#111111] transition-colors cursor-pointer max-lg:tap-hit"
           >
             <ArrowLeft className="w-3.5 h-3.5 text-[#8A8580] transition-colors duration-300 group-hover:text-[#EDA81C] group-hover:-translate-x-1" />
             <span>Prev</span>
@@ -186,7 +186,7 @@ export default function TestimonialSection() {
             type="button"
             onClick={handleNext}
             aria-label="Next testimonial"
-            className="group inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-[#444444] hover:text-[#111111] transition-colors cursor-pointer"
+            className="group inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-[#444444] hover:text-[#111111] transition-colors cursor-pointer max-lg:tap-hit"
           >
             <span>Next</span>
             <ArrowRight className="w-3.5 h-3.5 text-[#8A8580] transition-colors duration-300 group-hover:text-[#EDA81C] group-hover:translate-x-1" />

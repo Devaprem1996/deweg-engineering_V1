@@ -1,28 +1,108 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Compass, 
-  ArrowLeft, 
-  ArrowRight, 
-  CheckCircle2, 
-  Award, 
-  Building2, 
-  Users, 
-  ShieldCheck, 
-  Layers, 
-  Cpu, 
-  ExternalLink,
-  ChevronRight,
-  Maximize2,
-  X
-} from 'lucide-react';
-import { 
-  ABOUT_PAGE_ASSETS, 
-  ABOUT_PAGE_CONTENT, 
-  DEWEG_LEADERSHIP, 
-  FIRM_MILESTONES 
+import { useEffect, useState } from 'react';
+import { motion, AnimatePresence, MotionConfig } from 'motion/react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, X } from 'lucide-react';
+import {
+  ABOUT_PAGE_ASSETS,
+  ABOUT_PAGE_CONTENT,
+  DEWEG_LEADERSHIP,
+  FIRM_MILESTONES
 } from '../data/aboutData';
 import { TeamMember } from '../types';
+
+const EASE = [0.16, 1, 0.3, 1] as const;
+const pad = (n: number) => String(n).padStart(2, '0');
+
+/* ————————————————————————————————————————————
+   Design tokens — light editorial monograph
+   ———————————————————————————————————————————— */
+
+const STATS = [
+  { value: '2020', label: 'Founded in Chennai' },
+  { value: '100+', label: 'Engineering practitioners' },
+  { value: 'ISO · LOD 500', label: 'Certified delivery standards' }
+];
+
+const ETHOS = [
+  'Design intelligence into constructible reality',
+  'Certainty and predictability at every stage'
+];
+
+const SPLIT_COLUMNS = [
+  {
+    index: '01',
+    label: 'Vision',
+    statement: ABOUT_PAGE_CONTENT.vision.statement,
+    subtext: ABOUT_PAGE_CONTENT.vision.subtext,
+    caption: 'Homegrown intellect',
+    image: ABOUT_PAGE_ASSETS.officeDrawing,
+    alt: 'Deweg Structural Engineering Drawings'
+  },
+  {
+    index: '02',
+    label: 'Mission',
+    statement: ABOUT_PAGE_CONTENT.mission.statement,
+    subtext: ABOUT_PAGE_CONTENT.mission.subtext,
+    caption: 'Digital structural delivery',
+    image: ABOUT_PAGE_ASSETS.teamWorkplace,
+    alt: 'Deweg Technical Workplace Culture'
+  }
+];
+
+const sentenceCase = (input: string) =>
+  input
+    .toLowerCase()
+    .replace(/(^\s*[a-z])|([.!?]\s+[a-z])/g, (m) => m.toUpperCase());
+
+const shortBlurb = (leader: TeamMember) =>
+  leader.secondaryRole || `${leader.bio.split('.')[0]}.`;
+
+/* ————————————————————————————————————————————
+   Shared editorial motion primitives
+   ———————————————————————————————————————————— */
+
+function Eyebrow({ label }: { label: string }) {
+  return (
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: '-60px 0px' }}
+      className="flex items-center gap-4"
+    >
+      <motion.span
+        variants={{ hidden: { scaleX: 0 }, visible: { scaleX: 1 } }}
+        transition={{ duration: 0.8, ease: EASE }}
+        className="block h-px w-8 bg-[#C98A2D] origin-left"
+      />
+      <motion.span
+        variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}
+        transition={{ duration: 0.6, delay: 0.1, ease: 'easeOut' }}
+        className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#8C887E]"
+      >
+        {label}
+      </motion.span>
+    </motion.div>
+  );
+}
+
+function RevealText({ text, className, delay = 0 }: { text: string; className?: string; delay?: number }) {
+  return (
+    <span className={className}>
+      {text.split(' ').map((word, i) => (
+        <span key={`${word}-${i}`} className="inline-block overflow-hidden align-top">
+          <motion.span
+            initial={{ y: '110%', opacity: 0 }}
+            whileInView={{ y: '0%', opacity: 1 }}
+            viewport={{ once: true, margin: '-60px 0px' }}
+            transition={{ duration: 0.8, delay: delay + i * 0.05, ease: EASE }}
+            className="inline-block"
+          >
+            {word}&nbsp;
+          </motion.span>
+        </span>
+      ))}
+    </span>
+  );
+}
 
 interface AboutPageProps {
   onNavigateHome: () => void;
@@ -38,640 +118,747 @@ export default function AboutPage({
   const [selectedLeader, setSelectedLeader] = useState<TeamMember | null>(null);
   const [lightboxImage, setLightboxImage] = useState<string | null>(null);
 
+  // Close controls: Escape, backdrop click, body scroll lock.
+  useEffect(() => {
+    if (!selectedLeader && !lightboxImage) return;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSelectedLeader(null);
+        setLightboxImage(null);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [selectedLeader, lightboxImage]);
+
   return (
-    <div className="relative min-h-screen bg-transparent text-[#0C0A09] pt-24 sm:pt-28 pb-20">
-      
-      {/* Editorial Breadcrumbs & Back Bar */}
-      <div className="max-w-7xl mx-auto px-6 md:px-12 mb-8">
-        <div className="flex items-center justify-between py-3 border-b border-white/80">
-          <div className="flex items-center gap-2 text-xs font-sans text-[#57534E]">
+    <MotionConfig reducedMotion="user">
+      <div className="relative min-h-screen bg-[#F6F5F0] text-[#161614] selection:bg-[#C98A2D]/25 pt-[72px] overflow-x-clip">
+        {/* ─── 1. Breadcrumb header ─── */}
+        <header className="max-w-[1600px] mx-auto px-[7vw]">
+          <div className="min-h-16 pt-4 pb-3 sm:py-0 sm:h-16 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-0 justify-between border-b border-[#DDD9CF]">
             <button
+              type="button"
               onClick={onNavigateHome}
-              className="hover:text-[#EDA81C] transition-colors flex items-center gap-1 font-semibold cursor-pointer"
+              className="group self-start inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.14em] text-[#5E5B54] hover:text-[#161614] transition-colors cursor-pointer shrink-0 min-w-0 max-lg:tap-hit"
             >
-              <span>Home</span>
+              <ArrowLeft className="w-3.5 h-3.5 transition-transform duration-300 group-hover:-translate-x-1" />
+              <span className="whitespace-nowrap">DEWEG Engineering</span>
+              <span className="text-[#C4C0B6] tracking-[0.05em]">/</span>
+              <span className="whitespace-nowrap text-[#161614]">About Deweg</span>
             </button>
-            <ChevronRight className="w-3.5 h-3.5 text-[#A8A29E]" />
-            <span className="text-[#0C0A09] font-bold">About Deweg</span>
+
+            <button
+              type="button"
+              onClick={onNavigateHome}
+              className="group self-start sm:self-auto inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.14em] text-[#161614] hover:text-black transition-colors cursor-pointer shrink-0 max-lg:tap-hit"
+            >
+              <span>Return to overview</span>
+              <ArrowRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+            </button>
           </div>
+        </header>
 
-          <button
-            onClick={onNavigateHome}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl backdrop-blur-xl bg-white/85 border border-white/80 text-xs font-sans font-bold text-[#0C0A09] hover:border-[#EDA81C] hover:text-[#EDA81C] transition-all shadow-sm cursor-pointer"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Return to Overview</span>
-          </button>
-        </div>
-      </div>
+        {/* ─── 2. Hero — Who We Are & Inception ─── */}
+        <section className="max-w-[1600px] mx-auto px-[7vw] pt-14 sm:pt-20 pb-16 sm:pb-24">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
+            {/* Left: copy */}
+            <div className="lg:col-span-7">
+              <Eyebrow label="01 / WHO WE ARE" />
 
-      {/* 1. HERO SECTION: Who We Are & Inception */}
-      <section className="max-w-7xl mx-auto px-6 md:px-12 mb-20 md:mb-28">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
-          {/* Left Column: Authentic Copy */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="lg:col-span-7 space-y-6"
-          >
-            <div className="flex items-center gap-2">
-              <span className="w-6 h-[2px] bg-[#E5E3DC]" />
-              <span className="text-[11px] font-mono uppercase tracking-[0.28em] text-[#8A8580]">
-                {ABOUT_PAGE_CONTENT.badge}
-              </span>
-            </div>
-
-            <h1 className="font-sans text-3xl sm:text-5xl md:text-6xl text-[#0C0A09] font-bold tracking-[-0.02em] leading-[1.05]">
-              Defining the Path to Build Better
-            </h1>
-
-            <p className="font-sans text-lg sm:text-xl text-[#EDA81C] italic font-semibold">
-              "{ABOUT_PAGE_CONTENT.tagline}"
-            </p>
-
-            <p className="text-sm sm:text-base text-[#292524] font-sans font-normal leading-relaxed">
-              {ABOUT_PAGE_CONTENT.foundingStory}
-            </p>
-
-            {/* Inception Key Pillars */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-4">
-              <div className="p-4 rounded-2xl backdrop-blur-xl bg-white/85 border border-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.03)]">
-                <div className="text-xs font-sans font-bold text-[#EDA81C] uppercase tracking-wider">
-                  2020
-                </div>
-                <div className="text-xs font-bold text-[#0C0A09] mt-0.5">
-                  Founded in Chennai
-                </div>
-                <div className="text-[11px] font-medium text-[#57534E] mt-0.5">
-                  Headquarters & Design Lab
-                </div>
-              </div>
-
-              <div className="p-4 rounded-2xl backdrop-blur-xl bg-white/85 border border-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.03)]">
-                <div className="text-xs font-sans font-bold text-[#EDA81C] uppercase tracking-wider">
-                  100+
-                </div>
-                <div className="text-xs font-bold text-[#0C0A09] mt-0.5">
-                  Engineering Brawn
-                </div>
-                <div className="text-[11px] font-medium text-[#57534E] mt-0.5">
-                  Meticulously Cultivated Team
-                </div>
-              </div>
-
-              <div className="p-4 rounded-2xl backdrop-blur-xl bg-white/85 border border-white/80 shadow-[0_8px_30px_rgb(0,0,0,0.03)] col-span-2 sm:col-span-1">
-                <div className="text-xs font-sans font-bold text-[#EDA81C] uppercase tracking-wider">
-                  ISO & LOD 500
-                </div>
-                <div className="text-xs font-bold text-[#0C0A09] mt-0.5">
-                  Certified Standards
-                </div>
-                <div className="text-[11px] font-medium text-[#57534E] mt-0.5">
-                  European & International Codes
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Right Column: Hero Banner Image */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.7, delay: 0.2 }}
-            className="lg:col-span-5"
-          >
-            <div className="relative rounded-3xl overflow-hidden border border-white/80 backdrop-blur-xl bg-white/80 shadow-[0_12px_40px_rgb(0,0,0,0.04)] group">
-              <div className="aspect-[4/3] w-full overflow-hidden">
-                <img
-                  src={ABOUT_PAGE_ASSETS.heroBanner}
-                  alt="Deweg Engineering Headquarters & Inception Banner"
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                />
-              </div>
-
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-5 text-white">
-                <div>
-                  <div className="text-[10px] font-sans font-bold tracking-widest text-[#E7E1D8] uppercase">
-                    CHENNAI HEADQUARTERS • EST. 2020
-                  </div>
-                  <div className="text-sm font-serif font-medium mt-0.5">
-                    DEWEG ENGINEERING PRIVATE LIMITED
-                  </div>
-                </div>
-              </div>
-
-              <button
-                onClick={() => setLightboxImage(ABOUT_PAGE_ASSETS.heroBanner)}
-                className="absolute top-3 right-3 p-2 rounded-full bg-black/40 hover:bg-black/70 text-white backdrop-blur-xs transition-colors cursor-pointer"
-                aria-label="Enlarge hero image"
+              <motion.h1
+                aria-label={sentenceCase(ABOUT_PAGE_CONTENT.title)}
+                className="mt-8 font-medium text-[#161614] tracking-[-0.035em] leading-[1.02] text-[clamp(3.5rem,6vw,6.5rem)]"
               >
-                <Maximize2 className="w-4 h-4" />
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+                <RevealText text="Defining the path to better build." />
+              </motion.h1>
 
-      {/* 2. THE PHILOSOPHY AND THE MANTRA */}
-      <section className="py-20 md:py-28">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="rounded-3xl backdrop-blur-xl bg-white/85 border border-white/80 p-8 sm:p-14 shadow-[0_12px_40px_rgb(0,0,0,0.04)]">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-              
-              {/* Left Image: About_edited.jpg */}
-              <div className="lg:col-span-5 order-2 lg:order-1">
-                <div className="relative rounded-2xl overflow-hidden border border-[#E7E1D8] shadow-md group bg-[#FFF9ED]">
-                  <div className="aspect-[4/3] w-full overflow-hidden">
+              <motion.p
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-60px 0px' }}
+                transition={{ duration: 0.7, delay: 0.3, ease: EASE }}
+                className="mt-6 max-w-[620px] font-sans text-[15px] sm:text-base leading-[1.6] text-[#5E5B54]"
+              >
+                {sentenceCase(ABOUT_PAGE_CONTENT.tagline)}
+              </motion.p>
+
+              <motion.p
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-60px 0px' }}
+                transition={{ duration: 0.7, delay: 0.4, ease: EASE }}
+                className="mt-5 max-w-[620px] font-sans text-[15px] sm:text-[16px] leading-[1.65] text-[#5E5B54]"
+              >
+                {ABOUT_PAGE_CONTENT.foundingStory}
+              </motion.p>
+
+              {/* Data strip */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-40px 0px' }}
+                transition={{ duration: 0.7, delay: 0.5, ease: EASE }}
+                className="mt-12 border-t border-[#DDD9CF]"
+              >
+                <div className="divide-y divide-[#DDD9CF] sm:divide-y-0 sm:grid sm:grid-cols-3 sm:divide-x">
+                  {STATS.map((stat) => (
+                    <div key={stat.label} className="py-6 sm:px-7 first:sm:pl-0 sm:py-5">
+                      <span className="block font-mono text-[12px] uppercase tracking-[0.14em] text-[#161614]">
+                        {stat.value}
+                      </span>
+                      <span className="block mt-2 font-sans text-[13px] text-[#5E5B54]">
+                        {stat.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Right: editorial frame */}
+            <div className="lg:col-span-5">
+              <motion.figure
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-60px 0px' }}
+                transition={{ duration: 0.9, delay: 0.15, ease: EASE }}
+                className="m-0"
+              >
+                <div className="relative aspect-[4/3] overflow-hidden rounded-[2px] border border-[#DDD9CF] bg-[#EBE9E1]">
+                  <img
+                    src={ABOUT_PAGE_ASSETS.heroBanner}
+                    alt="DEWEG Engineering Headquarters & Inception Banner"
+                    className="w-full h-full object-cover"
+                    loading="eager"
+                    decoding="async"
+                    referrerPolicy="no-referrer"
+                  />
+                </div>
+                <figcaption className="mt-3 flex items-baseline justify-between gap-6">
+                  <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#8C887E]">
+                    [ FIG 01 — CHENNAI HEADQUARTERS · EST. 2020 ]
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setLightboxImage(ABOUT_PAGE_ASSETS.heroBanner)}
+className="group inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#161614] hover:text-black transition-colors cursor-pointer shrink-0 max-lg:tap-hit"
+                    >
+                      <span className="whitespace-nowrap">View image</span>
+                    <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+                  </button>
+                </figcaption>
+              </motion.figure>
+            </div>
+          </div>
+        </section>
+
+        {/* ─── 3. Philosophy & Mantra ─── */}
+        <section className="border-t border-[#DDD9CF] py-20 sm:py-28">
+          <div className="max-w-[1600px] mx-auto px-[7vw]">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+              {/* Left: technical image */}
+              <div className="lg:col-span-5">
+                <motion.figure
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-60px 0px' }}
+                  transition={{ duration: 0.9, ease: EASE }}
+                  className="m-0"
+                >
+                  <div className="aspect-[4/3] overflow-hidden rounded-[2px] border border-[#DDD9CF] bg-[#EBE9E1]">
                     <img
                       src={ABOUT_PAGE_ASSETS.aboutEdited}
                       alt="Deweg Engineering Practice & Analytical Drawing"
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                  </div>
-                  <div className="p-4 bg-white/95 border-t border-[#F0EBE1]">
-                    <p className="text-xs text-[#292524] font-sans font-medium">
-                      Constructible Frameworks • Design Intelligence • FEA Simulation
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Copy: Verbatim Philosophy & Ethos */}
-              <div className="lg:col-span-7 order-1 lg:order-2 space-y-5">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFF9ED] border border-[#E7E1D8] text-[11px] font-sans font-bold text-[#EDA81C]">
-                  <span>CORE ETHOS</span>
-                </div>
-
-                <h2 className="font-serif text-2xl sm:text-4xl text-[#0C0A09] font-bold tracking-tight">
-                  {ABOUT_PAGE_CONTENT.philosophyAndMantra.title}
-                </h2>
-
-                <blockquote className="border-l-2 border-[#EDA81C] pl-5 my-4">
-                  <p className="font-serif text-lg sm:text-xl text-[#0C0A09] italic font-semibold leading-snug">
-                    "{ABOUT_PAGE_CONTENT.philosophyAndMantra.quote}"
-                  </p>
-                </blockquote>
-
-                <p className="text-sm sm:text-base text-[#292524] font-sans leading-relaxed">
-                  {ABOUT_PAGE_CONTENT.philosophyAndMantra.context}
-                </p>
-
-                <div className="pt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="flex items-start gap-2.5 text-xs sm:text-sm text-[#292524] font-medium">
-                    <CheckCircle2 className="w-4 h-4 text-[#EDA81C] shrink-0 mt-0.5" />
-                    <span>Transforming design codes into constructible reality</span>
-                  </div>
-                  <div className="flex items-start gap-2.5 text-xs sm:text-sm text-[#292524] font-medium">
-                    <CheckCircle2 className="w-4 h-4 text-[#EDA81C] shrink-0 mt-0.5" />
-                    <span>Certainty and predictability at every stage</span>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. VISION & MISSION: Architectural Dual Cards */}
-      <section className="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28">
-        <div className="text-center max-w-2xl mx-auto mb-14">
-          <span className="text-[11px] font-mono uppercase tracking-[0.28em] text-[#8A8580]">
-            PURPOSE & DIRECTION
-          </span>
-          <h2 className="font-serif text-3xl sm:text-4xl text-[#0C0A09] font-bold tracking-tight mt-2">
-            Vision & Mission in Action
-          </h2>
-          <p className="text-xs sm:text-sm text-[#292524] mt-2 font-sans font-medium">
-            How homegrown intellect and modern digital infrastructure combine to serve world-class projects.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          
-          {/* VISION CARD */}
-          <div className="flex flex-col justify-between p-8 sm:p-10 rounded-3xl backdrop-blur-xl bg-white/85 border border-white/80 shadow-[0_12px_40px_rgb(0,0,0,0.04)] hover:border-[#EDA81C]/50 transition-all relative overflow-hidden">
-            <div className="relative z-10 space-y-5">
-              <div className="flex items-center justify-between">
-                <span className="px-3 py-1 rounded-full text-xs font-sans font-bold text-[#EDA81C] bg-[#FFF9ED] border border-[#E7E1D8] uppercase tracking-wider">
-                  {ABOUT_PAGE_CONTENT.vision.title}
-                </span>
-                <Building2 className="w-5 h-5 text-[#EDA81C]" />
-              </div>
-
-              <h3 className="font-serif text-lg sm:text-xl text-[#0C0A09] font-bold leading-relaxed">
-                "{ABOUT_PAGE_CONTENT.vision.statement}"
-              </h3>
-
-              <p className="text-xs sm:text-sm text-[#292524] font-sans leading-relaxed">
-                {ABOUT_PAGE_CONTENT.vision.subtext}
-              </p>
-            </div>
-
-            {/* Visual Attachment: IMG_0003.JPG */}
-            <div className="mt-6 pt-5 border-t border-[#F0EBE1] flex items-center gap-4">
-              <div className="w-20 h-16 rounded-xl overflow-hidden border border-[#E7E1D8] shrink-0">
-                <img
-                  src={ABOUT_PAGE_ASSETS.officeDrawing}
-                  alt="Deweg Structural Engineering Drawings"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="text-xs text-[#57534E] font-sans">
-                <span className="font-bold text-[#0C0A09] block">Homegrown Intellect</span>
-                Mentoring the next generation of structural specialists in Chennai.
-              </div>
-            </div>
-          </div>
-
-          {/* MISSION CARD */}
-          <div className="flex flex-col justify-between p-8 sm:p-10 rounded-3xl backdrop-blur-xl bg-white/85 border border-white/80 shadow-[0_12px_40px_rgb(0,0,0,0.04)] hover:border-[#EDA81C]/50 transition-all relative overflow-hidden">
-            <div className="relative z-10 space-y-5">
-              <div className="flex items-center justify-between">
-                <span className="px-3 py-1 rounded-full text-xs font-sans font-bold text-[#EDA81C] bg-[#FFF9ED] border border-[#E7E1D8] uppercase tracking-wider">
-                  {ABOUT_PAGE_CONTENT.mission.title}
-                </span>
-                <Cpu className="w-5 h-5 text-[#EDA81C]" />
-              </div>
-
-              <h3 className="font-serif text-lg sm:text-xl text-[#0C0A09] font-bold leading-relaxed">
-                "{ABOUT_PAGE_CONTENT.mission.statement}"
-              </h3>
-
-              <p className="text-xs sm:text-sm text-[#292524] font-sans leading-relaxed">
-                {ABOUT_PAGE_CONTENT.mission.subtext}
-              </p>
-            </div>
-
-            {/* Visual Attachment: DSC_0787.jpg */}
-            <div className="mt-6 pt-5 border-t border-[#F0EBE1] flex items-center gap-4">
-              <div className="w-20 h-16 rounded-xl overflow-hidden border border-[#E7E1D8] shrink-0">
-                <img
-                  src={ABOUT_PAGE_ASSETS.teamWorkplace}
-                  alt="Deweg Technical Workplace Culture"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              <div className="text-xs text-[#57534E] font-sans">
-                <span className="font-bold text-[#0C0A09] block">Digital Structural Delivery</span>
-                Connecting design intelligence to international construction sites.
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      {/* 4. TEAM BEHIND DEWEG: Illustrious Leadership Directorate */}
-      <section className="py-20 md:py-28">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          
-          <div className="max-w-3xl mb-14">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="w-2 h-2 rounded-full bg-[#EDA81C]" />
-              <span className="text-[11px] font-mono uppercase tracking-[0.28em] text-[#8A8580]">
-                ILLUSTRIOUS TEAM
-              </span>
-            </div>
-            <h2 className="font-serif text-3xl sm:text-5xl text-[#0C0A09] font-bold tracking-tight">
-              {ABOUT_PAGE_CONTENT.teamIntro.title}
-            </h2>
-            <p className="mt-3 text-sm sm:text-base text-[#292524] font-sans leading-relaxed">
-              {ABOUT_PAGE_CONTENT.teamIntro.description}
-            </p>
-          </div>
-
-          {/* Leadership Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {DEWEG_LEADERSHIP.map((leader, idx) => (
-              <motion.div
-                key={leader.name}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: idx * 0.08 }}
-                onClick={() => setSelectedLeader(leader)}
-                className="group cursor-pointer rounded-3xl backdrop-blur-xl bg-white/85 border border-white/80 overflow-hidden hover:border-[#EDA81C] hover:shadow-[0_12px_40px_rgb(0,0,0,0.06)] transition-all duration-300 flex flex-col justify-between"
-              >
-                {/* Image Frame */}
-                <div className="relative aspect-[4/3] bg-[#1C1917] overflow-hidden">
-                  {leader.image ? (
-                    <img
-                      src={leader.image}
-                      alt={leader.name}
-                      className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105 filter contrast-[1.03]"
+                      className="w-full h-full object-cover"
                       loading="lazy"
+                      decoding="async"
+                      referrerPolicy="no-referrer"
                     />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-[#292524] text-[#A8A29E]">
-                      <Users className="w-12 h-12" />
-                    </div>
-                  )}
-
-                  {/* Experience Badge */}
-                  {leader.experience && (
-                    <div className="absolute top-3 right-3 px-2.5 py-1 rounded-md text-[10px] font-mono font-bold bg-[#1C1917]/85 backdrop-blur-xs text-white border border-[#44403C]/50">
-                      {leader.experience}
-                    </div>
-                  )}
-
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent opacity-90 group-hover:opacity-75 transition-opacity" />
-
-                  {/* Identity text overlay */}
-                  <div className="absolute bottom-3 left-4 right-4 text-white">
-                    <span className="text-[11px] font-mono text-[#E7E1D8] uppercase tracking-wider block">
-                      {leader.role}
-                    </span>
-                    <h3 className="font-serif text-lg font-medium leading-snug">
-                      {leader.name}
-                    </h3>
                   </div>
+                  <figcaption className="mt-3 font-mono text-[11px] uppercase tracking-[0.14em] text-[#8C887E]">
+                    [ FIG 02 — THE PRACTICE, IN DRAWING ]
+                  </figcaption>
+                </motion.figure>
+              </div>
+
+              {/* Right: copy */}
+              <div className="lg:col-span-7">
+                <Eyebrow label="02 / CORE ETHOS" />
+
+                <motion.h2
+                  className="mt-7 font-medium text-[#161614] tracking-[-0.035em] leading-[1.08] text-[clamp(2.25rem,4vw,3.5rem)]"
+                >
+                  <RevealText text="The philosophy behind the work." />
+                </motion.h2>
+
+                <motion.blockquote
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-60px 0px' }}
+                  transition={{ duration: 0.7, delay: 0.15, ease: EASE }}
+                  className="mt-8 border-l-2 border-[#C98A2D] pl-6"
+                >
+                  <p className="max-w-[560px] font-sans font-medium text-[1.35rem] sm:text-[1.5rem] leading-[1.4] text-[#161614]">
+                    {ABOUT_PAGE_CONTENT.philosophyAndMantra.quote.replace('DEFINING THE PATH', 'defining the path')}
+                  </p>
+                </motion.blockquote>
+
+                <motion.p
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-60px 0px' }}
+                  transition={{ duration: 0.7, delay: 0.25, ease: EASE }}
+                  className="mt-7 max-w-[560px] font-sans text-[15px] leading-[1.65] text-[#5E5B54]"
+                >
+                  {ABOUT_PAGE_CONTENT.philosophyAndMantra.context}
+                </motion.p>
+
+                {/* Ethos list */}
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-40px 0px' }}
+                  transition={{ duration: 0.7, delay: 0.35, ease: EASE }}
+                  className="mt-10 border-t border-[#DDD9CF]"
+                >
+                  {ETHOS.map((item, i) => (
+                    <div
+                      key={item}
+                      className="flex items-baseline gap-6 border-b border-[#DDD9CF] py-5"
+                    >
+                      <span className="font-mono text-[11px] tracking-[0.14em] text-[#8C887E]">
+                        {pad(i + 1)}
+                      </span>
+                      <span className="font-sans text-[15px] text-[#161614]">{item}</span>
+                    </div>
+                  ))}
+                </motion.div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ─── 4. Vision & Mission ─── */}
+        <section className="bg-[#EFEEE8] border-y border-[#DDD9CF] py-20 sm:py-28">
+          <div className="max-w-[1600px] mx-auto px-[7vw]">
+            <header className="max-w-2xl">
+              <Eyebrow label="03 / PURPOSE & DIRECTION" />
+              <motion.h2 className="mt-7 font-medium text-[#161614] tracking-[-0.035em] leading-[1.08] text-[clamp(2.25rem,4vw,3.5rem)]">
+                <RevealText text="Vision and mission in action." />
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-60px 0px' }}
+                transition={{ duration: 0.7, delay: 0.15, ease: EASE }}
+                className="mt-5 max-w-[600px] font-sans text-[15px] leading-[1.6] text-[#5E5B54]"
+              >
+                How homegrown intellect and modern digital infrastructure combine to serve world-class projects.
+              </motion.p>
+            </header>
+
+            <div className="mt-14 lg:mt-16 grid grid-cols-1 lg:grid-cols-2">
+              {SPLIT_COLUMNS.map((col, i) => (
+                <motion.div
+                  key={col.label}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-40px 0px' }}
+                  transition={{ duration: 0.8, delay: i * 0.12, ease: EASE }}
+                  className={`py-12 ${i === 0 ? 'lg:pr-16' : ''} ${
+                    i === 1 ? 'border-t border-[#DDD9CF] lg:border-t-0 lg:border-l lg:pl-16' : ''
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-4">
+                    <span className="font-mono text-[11px] uppercase tracking-[0.22em] text-[#C98A2D]">
+                      {col.index} / {col.label}
+                    </span>
+                    <span className="h-px flex-1 max-w-[96px] bg-[#DDD9CF]" />
+                  </div>
+
+                  <h3 className="mt-7 max-w-[480px] font-medium text-[#161614] tracking-[-0.02em] leading-[1.3] text-[1.5rem] sm:text-[1.75rem]">
+                    "{sentenceCase(col.statement)}"
+                  </h3>
+
+                  <p className="mt-5 max-w-[480px] font-sans text-[15px] leading-[1.6] text-[#5E5B54]">
+                    {sentenceCase(col.subtext)}
+                  </p>
+
+                  <div className="mt-10 pt-6 border-t border-[#DDD9CF]">
+                    <button
+                      type="button"
+                      onClick={() => setLightboxImage(col.image)}
+                      className="group flex items-center gap-4 text-left w-full cursor-pointer"
+                    >
+                      <span className="aspect-[4/3] w-24 shrink-0 overflow-hidden rounded-[2px] border border-[#DDD9CF] bg-[#EBE9E1] transition-colors duration-300 group-hover:border-[#B9B5A9]">
+                        <img
+                          src={col.image}
+                          alt={col.alt}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                          decoding="async"
+                          referrerPolicy="no-referrer"
+                        />
+                      </span>
+                      <span className="inline-flex items-center gap-2 font-sans text-[15px] font-medium text-[#161614]">
+                        {col.caption}
+                        <ArrowUpRight className="w-4 h-4 text-[#8C887E] transition-all duration-300 group-hover:text-[#161614] group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                      </span>
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ─── 5. Team — Editorial Roster ─── */}
+        <section className="py-20 sm:py-28">
+          <div className="max-w-[1600px] mx-auto px-[7vw]">
+            <header className="max-w-2xl">
+              <Eyebrow label="04 / THE PEOPLE BEHIND THE PRACTICE" />
+              <motion.h2 className="mt-7 font-medium text-[#161614] tracking-[-0.035em] leading-[1.08] text-[clamp(2.25rem,4vw,3.5rem)]">
+                <RevealText text="A team built on technical depth." />
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-60px 0px' }}
+                transition={{ duration: 0.7, delay: 0.15, ease: EASE }}
+                className="mt-5 max-w-[620px] font-sans text-[15px] leading-[1.65] text-[#5E5B54]"
+              >
+                {ABOUT_PAGE_CONTENT.teamIntro.description}
+              </motion.p>
+            </header>
+
+            <div className="mt-14 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-16">
+              {DEWEG_LEADERSHIP.map((leader, idx) => (
+                <motion.button
+                  key={leader.name}
+                  type="button"
+                  onClick={() => setSelectedLeader(leader)}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-40px 0px' }}
+                  transition={{ duration: 0.7, delay: (idx % 3) * 0.08, ease: EASE }}
+                  className="group text-left cursor-pointer"
+                >
+                  <div className="relative aspect-[4/5] overflow-hidden rounded-[2px] border border-[#DDD9CF] bg-[#EBE9E1]">
+                    {leader.image ? (
+                      <img
+                        src={leader.image}
+                        alt={leader.name}
+                        className="w-full h-full object-cover object-top transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+                        loading="lazy"
+                        decoding="async"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-[#EBE9E1] text-[#B9B5A9]" />
+                    )}
+                  </div>
+
+                  <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.16em] text-[#8C887E]">
+                    {pad(idx + 1)} / {leader.role}
+                  </p>
+
+                  <h3 className="mt-2 font-medium text-[#161614] tracking-[-0.02em] text-[1.35rem] leading-snug transition-transform duration-300 ease-out group-hover:translate-x-1">
+                    {leader.name}
+                  </h3>
+
+                  <div className="mt-2 flex flex-wrap items-baseline gap-x-3 gap-y-1 font-mono text-[11px] tracking-[0.08em]">
+                    <span className="text-[#C98A2D]">
+                      {leader.credentials ? sentenceCase(leader.credentials) : ''}
+                    </span>
+                    {leader.experience && (
+                      <span className="text-[#8C887E]">{leader.experience}</span>
+                    )}
+                  </div>
+
+                  <p className="mt-3 font-sans text-[14px] leading-[1.55] text-[#5E5B54] line-clamp-2">
+                    {shortBlurb(leader)}
+                  </p>
+
+                  <span className="mt-4 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.14em] text-[#161614]">
+                    <span>View profile</span>
+                    <ArrowRight className="w-3.5 h-3.5 text-[#8C887E] opacity-0 -translate-x-1 transition-all duration-300 group-hover:opacity-100 group-hover:translate-x-0" />
+                  </span>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ─── 6. Team Culture Photo Panel ─── */}
+        <section className="bg-[#EFEEE8] border-t border-[#DDD9CF] py-20 sm:py-28">
+          <div className="max-w-[1600px] mx-auto px-[7vw]">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-end">
+              {/* Left: copy */}
+              <div className="lg:col-span-5">
+                <Eyebrow label="05 / PEOPLE & PASSION" />
+                <motion.h2 className="mt-7 font-medium text-[#161614] tracking-[-0.035em] leading-[1.08] text-[clamp(2rem,3.6vw,3rem)]">
+                  <RevealText text="A practice built on people." />
+                </motion.h2>
+                <motion.p
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-60px 0px' }}
+                  transition={{ duration: 0.7, delay: 0.15, ease: EASE }}
+                  className="mt-5 max-w-[480px] font-sans text-[15px] leading-[1.65] text-[#5E5B54]"
+                >
+                  DEWEG stands on the brawn of its illustrious team—engineers, BIM architects, project managers, and quality controllers united by a singular focus: precision delivery for international infrastructure.
+                </motion.p>
+                <motion.button
+                  type="button"
+                  onClick={() => setLightboxImage(ABOUT_PAGE_ASSETS.teamOuting)}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-40px 0px' }}
+                  transition={{ duration: 0.7, delay: 0.25, ease: EASE }}
+                  className="group mt-8 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.14em] text-[#161614] hover:text-black transition-colors cursor-pointer max-lg:tap-hit"
+                >
+                  <span>View full image</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+                </motion.button>
+              </div>
+
+              {/* Right: image */}
+              <div className="lg:col-span-7">
+                <motion.figure
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-60px 0px' }}
+                  transition={{ duration: 0.9, delay: 0.15, ease: EASE }}
+                  className="m-0"
+                >
+                  <div className="aspect-[16/10] overflow-hidden rounded-[2px] border border-[#DDD9CF] bg-[#EBE9E1]">
+                    <img
+                      src={ABOUT_PAGE_ASSETS.teamOuting}
+                      alt="DEWEG Engineering Annual Team Gathering"
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                  <figcaption className="mt-3 flex items-baseline justify-between gap-6">
+                    <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[#8C887E]">
+                      [ FIG 05 — DEWEG TEAM GATHERING ]
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setLightboxImage(ABOUT_PAGE_ASSETS.teamOuting)}
+                      className="group inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#161614] hover:text-black transition-colors cursor-pointer shrink-0 max-lg:tap-hit"
+                    >
+                      <span className="whitespace-nowrap">View full image</span>
+                      <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+                    </button>
+                  </figcaption>
+                </motion.figure>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ─── 7. Milestones — Editorial Timeline ─── */}
+        <section className="py-20 sm:py-28">
+          <div className="max-w-[1600px] mx-auto px-[7vw]">
+            <header className="max-w-xl">
+              <Eyebrow label="06 / CHRONOLOGY OF EXCELLENCE" />
+              <motion.h2 className="mt-7 font-medium text-[#161614] tracking-[-0.035em] leading-[1.08] text-[clamp(2rem,3.6vw,3rem)]">
+                <RevealText text="Our journey since 2020." />
+              </motion.h2>
+            </header>
+
+            {/* Desktop: alternating above/below a central hairline */}
+            <div className="hidden lg:block mt-16 relative">
+              <div className="absolute inset-x-0 top-1/2 h-px bg-[#DDD9CF]" />
+              <div className="grid grid-cols-4 gap-x-10">
+                {FIRM_MILESTONES.map((m, i) => {
+                  const above = i % 2 === 0;
+                  const isCurrent = i === FIRM_MILESTONES.length - 1;
+                  return (
+                    <motion.div
+                      key={m.year}
+                      initial={{ opacity: 0, y: 16 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: '-60px 0px' }}
+                      transition={{ duration: 0.7, delay: i * 0.12, ease: EASE }}
+                      className="relative h-full min-h-[340px]"
+                    >
+                      <span
+                        className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 block h-3 w-3 rounded-full border-2 ${
+                          isCurrent
+                            ? 'border-[#C98A2D] bg-[#C98A2D]'
+                            : 'border-[#B9B5A9] bg-[#F6F5F0]'
+                        }`}
+                      />
+                      <div
+                        className={`flex flex-col ${above ? '' : 'h-full justify-end'}`}
+                      >
+                        <div className={above ? 'pb-24 pr-4' : 'pt-24 pr-4'}>
+                          <span className="block font-medium text-[#161614] tracking-[-0.03em] leading-none text-[2.5rem]">
+                            {m.year}
+                          </span>
+                          <h4 className="mt-3 font-medium text-[17px] tracking-[-0.01em] text-[#161614]">
+                            {m.title}
+                          </h4>
+                          <p className="mt-3 font-sans text-[14px] leading-[1.6] text-[#5E5B54]">
+                            {m.description}
+                          </p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Mobile: vertical list with left rule */}
+            <div className="lg:hidden mt-14">
+              <div className="relative pl-9">
+                <div className="absolute left-[5px] top-1 bottom-1 w-px bg-[#DDD9CF]" />
+                <div className="space-y-12">
+                  {FIRM_MILESTONES.map((m, i) => {
+                    const isCurrent = i === FIRM_MILESTONES.length - 1;
+                    return (
+                      <motion.div
+                        key={m.year}
+                        initial={{ opacity: 0, x: 12 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true, margin: '-40px 0px' }}
+                        transition={{ duration: 0.6, delay: i * 0.1, ease: EASE }}
+                        className="relative"
+                      >
+                        <span
+                          className={`absolute top-1 block h-3 w-3 rounded-full border-2 ${
+                            isCurrent
+                              ? 'border-[#C98A2D] bg-[#C98A2D]'
+                              : 'border-[#B9B5A9] bg-[#F6F5F0]'
+                          }`}
+                          style={{ left: '-38px' }}
+                        />
+                        <span className="block font-medium text-[#161614] tracking-[-0.03em] leading-none text-[2rem]">
+                          {m.year}
+                        </span>
+                        <h4 className="mt-2 font-medium text-[17px] tracking-[-0.01em] text-[#161614]">
+                          {m.title}
+                        </h4>
+                        <p className="mt-2 font-sans text-[14px] leading-[1.6] text-[#5E5B54]">
+                          {m.description}
+                        </p>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ─── 8. Bottom CTA — Light Closing Statement ─── */}
+        <section className="bg-[#E9E6DD] border-y border-[#DDD9CF] py-24 sm:py-[120px]">
+          <div className="max-w-[1600px] mx-auto px-[7vw]">
+            <div className="max-w-3xl">
+              <Eyebrow label="07 / READY TO COLLABORATE" />
+              <motion.h2 className="mt-8 font-medium text-[#161614] tracking-[-0.035em] leading-[1.05] text-[clamp(2.4rem,4.6vw,4rem)]">
+                <RevealText text="Experience the rigor of DEWEG Engineering." />
+              </motion.h2>
+              <motion.p
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-60px 0px' }}
+                transition={{ duration: 0.7, delay: 0.2, ease: EASE }}
+                className="mt-6 max-w-[560px] font-sans text-[15px] leading-[1.65] text-[#5E5B54]"
+              >
+                Explore our 7 specialized engineering practices, or discuss your project specifications with our leadership team.
+              </motion.p>
+
+              <div className="mt-10 flex flex-wrap items-center gap-8">
+                {onNavigateToServices && (
+                  <button
+                    type="button"
+                    onClick={onNavigateToServices}
+                    className="group inline-flex items-center gap-2.5 rounded-[2px] bg-[#161614] text-[#F6F5F0] px-8 py-4 font-mono text-[11px] uppercase tracking-[0.14em] transition-colors duration-300 hover:bg-black cursor-pointer"
+                  >
+                    <span>Explore 7 disciplines</span>
+                    <ArrowRight className="w-4 h-4 transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:translate-x-[5px]" />
+                  </button>
+                )}
+                {onNavigateToContact && (
+                  <button
+                    type="button"
+                    onClick={onNavigateToContact}
+                    className="group inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.14em] text-[#161614] hover:text-black transition-colors cursor-pointer max-lg:tap-hit"
+                  >
+                    <span>Contact leadership</span>
+                    <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ─── MODAL: Leader Bio ─── */}
+        <AnimatePresence>
+          {selectedLeader && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
+              role="dialog"
+              aria-modal="true"
+              aria-label={`${selectedLeader.name} profile`}
+            >
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                onClick={() => setSelectedLeader(null)}
+                className="fixed inset-0 bg-black/50"
+              />
+
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 16 }}
+                transition={{ duration: 0.4, ease: EASE }}
+                className="relative w-full max-w-3xl bg-[#F6F5F0] border border-[#DDD9CF] z-10 my-auto max-h-[90vh] flex flex-col"
+              >
+                <div className="flex items-center justify-between px-6 sm:px-8 py-4 border-b border-[#DDD9CF]">
+                  <span className="font-mono text-[11px] uppercase tracking-[0.2em] text-[#8C887E]">
+                    Leadership profile
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedLeader(null)}
+                    className="group inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#161614] hover:text-black cursor-pointer"
+                  >
+                    <span>Close</span>
+                    <span aria-hidden="true">×</span>
+                  </button>
                 </div>
 
-                {/* Card Content */}
-                <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
-                  <div>
-                    {leader.credentials && (
-                      <div className="text-xs font-mono text-[#EDA81C] font-semibold mb-2">
-                        {leader.credentials}
-                      </div>
-                    )}
-                    {leader.secondaryRole && (
-                      <div className="text-xs font-serif italic text-[#78716C] mb-3">
-                        {leader.secondaryRole}
-                      </div>
-                    )}
-                    <p className="text-xs sm:text-sm text-[#57534E] font-sans line-clamp-3 leading-relaxed">
-                      {leader.bio}
-                    </p>
-                  </div>
+                <div className="overflow-y-auto">
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-8 p-6 sm:p-8">
+                    {/* Image */}
+                    <div className="md:col-span-4">
+                      {selectedLeader.image && (
+                        <div className="aspect-[4/5] overflow-hidden rounded-[2px] border border-[#DDD9CF] bg-[#EBE9E1]">
+                          <img
+                            src={selectedLeader.image}
+                            alt={selectedLeader.name}
+                            className="w-full h-full object-cover object-top"
+                          />
+                        </div>
+                      )}
+                    </div>
 
-                  <div className="pt-3 border-t border-[#F0EBE1] flex items-center justify-between text-xs font-sans font-semibold text-[#EDA81C] group-hover:text-[#D49110]">
-                    <span>Read Full Profile & Accolades</span>
-                    <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-1" />
+                    {/* Content */}
+                    <div className="md:col-span-8 space-y-6">
+                      <div>
+                        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#C98A2D]">
+                          {selectedLeader.role}
+                        </p>
+                        <h3 className="mt-2 font-medium text-[#161614] tracking-[-0.02em] text-[1.75rem] leading-snug">
+                          {selectedLeader.name}
+                        </h3>
+                        {selectedLeader.secondaryRole && (
+                          <p className="mt-1.5 font-sans text-[15px] text-[#5E5B54]">
+                            {selectedLeader.secondaryRole}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="flex flex-wrap items-baseline gap-x-6 gap-y-2 font-mono text-[11px] tracking-[0.08em] border-y border-[#DDD9CF] py-4">
+                        {selectedLeader.credentials && (
+                          <span className="text-[#161614]">
+                            {sentenceCase(selectedLeader.credentials)}
+                          </span>
+                        )}
+                        {selectedLeader.experience && (
+                          <span className="text-[#8C887E]">{selectedLeader.experience}</span>
+                        )}
+                        {selectedLeader.education && (
+                          <span className="text-[#8C887E]">
+                            {sentenceCase(selectedLeader.education)}
+                          </span>
+                        )}
+                      </div>
+
+                      {selectedLeader.bio && (
+                        <div>
+                          <h4 className="mb-2 font-mono text-[11px] uppercase tracking-[0.18em] text-[#8C887E]">
+                            Biography
+                          </h4>
+                          <p className="font-sans text-[14px] leading-[1.7] text-[#5E5B54]">
+                            {selectedLeader.bio}
+                          </p>
+                        </div>
+                      )}
+
+                      {selectedLeader.specialty && (
+                        <div>
+                          <h4 className="mb-2 font-mono text-[11px] uppercase tracking-[0.18em] text-[#8C887E]">
+                            Domain specialization
+                          </h4>
+                          <p className="font-sans text-[14px] leading-[1.7] text-[#5E5B54]">
+                            {selectedLeader.specialty}
+                          </p>
+                        </div>
+                      )}
+
+                      {selectedLeader.leadershipStatement && (
+                        <blockquote className="border-l-2 border-[#C98A2D] pl-5">
+                          <p className="font-sans font-medium text-[15px] leading-[1.6] text-[#161614]">
+                            "{selectedLeader.leadershipStatement}"
+                          </p>
+                        </blockquote>
+                      )}
+                    </div>
                   </div>
                 </div>
               </motion.div>
-            ))}
-          </div>
-
-        </div>
-      </section>
-
-      {/* 5. TEAM CULTURE & WORKPLACE CELEBRATION PHOTO */}
-      <section className="max-w-7xl mx-auto px-6 md:px-12 py-20 md:py-28">
-        <div className="rounded-3xl backdrop-blur-xl bg-white/85 border border-white/80 p-8 sm:p-12 md:p-14 shadow-[0_12px_40px_rgb(0,0,0,0.04)] overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-            
-            <div className="lg:col-span-5 space-y-4">
-              <div className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-[#EDA81C]" />
-                <span className="text-[11px] font-mono uppercase tracking-[0.28em] text-[#8A8580]">
-                  PEOPLE & PASSION
-                </span>
-              </div>
-              <h3 className="font-serif text-2xl sm:text-3xl md:text-4xl text-[#0C0A09] font-bold tracking-tight">
-                Cultivated on Reliability, Integrity & Team Solidarity
-              </h3>
-              <p className="text-sm text-[#292524] font-sans leading-relaxed">
-                DEWEG stands on the brawn of its illustrious team—engineers, BIM architects, project managers, and quality controllers united by a singular focus: precision delivery for international infrastructure.
-              </p>
-              <div className="pt-2">
-                <div className="inline-flex items-center gap-2 text-xs font-sans font-bold text-[#EDA81C]">
-                  <Users className="w-4 h-4" />
-                  <span>Homegrown Intellect Serving Global Projects</span>
-                </div>
-              </div>
             </div>
+          )}
+        </AnimatePresence>
 
-            {/* Whole Team Outing Image (Team-Outing-Final1.jpg) */}
-            <div className="lg:col-span-7">
-              <div className="relative rounded-2xl overflow-hidden border border-white/80 bg-[#1C1917] shadow-lg group">
-                <img
-                  src={ABOUT_PAGE_ASSETS.teamOuting}
-                  alt="Deweg Engineering Annual Team Celebration & Solidarity"
-                  className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-4 text-white">
-                  <div className="flex items-center justify-between w-full text-xs">
-                    <span className="font-sans font-semibold">DEWEG Team Annual Gathering</span>
-                    <button
-                      onClick={() => setLightboxImage(ABOUT_PAGE_ASSETS.teamOuting)}
-                      className="inline-flex items-center gap-1 text-xs font-sans font-bold text-[#E7E1D8] hover:text-[#EDA81C] transition-colors cursor-pointer"
-                    >
-                      <Maximize2 className="w-3.5 h-3.5" />
-                      <span>Full View</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* 6. FIRM MILESTONES & JOURNEY */}
-      <section className="py-20 md:py-24">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="text-center max-w-xl mx-auto mb-14">
-            <span className="text-[11px] font-mono uppercase tracking-[0.28em] text-[#8A8580]">
-              CHRONOLOGY OF EXCELLENCE
-            </span>
-            <h2 className="font-serif text-3xl sm:text-4xl text-[#0C0A09] font-bold tracking-tight mt-2">
-              Our Journey Since 2020
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {FIRM_MILESTONES.map((m) => (
-              <div
-                key={m.year}
-                className="relative p-7 rounded-3xl backdrop-blur-xl bg-white/85 border border-white/80 shadow-[0_12px_40px_rgb(0,0,0,0.04)] space-y-3"
-              >
-                <div className="text-2xl font-serif font-bold text-[#EDA81C]">
-                  {m.year}
-                </div>
-                <h4 className="font-serif text-base font-bold text-[#0C0A09]">
-                  {m.title}
-                </h4>
-                <p className="text-xs sm:text-sm text-[#292524] font-sans leading-relaxed">
-                  {m.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 7. BOTTOM CALL TO ACTION */}
-      <section className="max-w-7xl mx-auto px-6 md:px-12 pt-20">
-        <div className="p-8 sm:p-12 rounded-3xl bg-[#1C1917] text-[#F5F5F4] flex flex-col md:flex-row items-center justify-between gap-8">
-          <div className="max-w-2xl space-y-2">
-            <span className="text-xs uppercase tracking-[0.25em] font-mono font-semibold text-[#EDA81C]">
-              READY TO COLLABORATE
-            </span>
-            <h3 className="font-serif text-2xl sm:text-3xl text-white font-medium">
-              Experience the Rigor of Deweg Engineering
-            </h3>
-            <p className="text-xs sm:text-sm text-[#A8A29E] font-sans leading-relaxed">
-              Explore our 7 specialized engineering practices or discuss your project specifications with our leadership team.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            {onNavigateToServices && (
-              <button
-                onClick={onNavigateToServices}
-                className="px-5 py-3 rounded-lg bg-[#EDA81C] hover:bg-[#D49110] text-[#0C0A09] text-xs font-sans font-semibold uppercase tracking-wider transition-colors shadow-sm"
-              >
-                Explore 7 Disciplines
-              </button>
-            )}
-            {onNavigateToContact && (
-              <button
-                onClick={onNavigateToContact}
-                className="px-5 py-3 rounded-lg bg-[#292524] hover:bg-[#38332E] text-[#E7E5E4] text-xs font-sans font-medium uppercase tracking-wider border border-[#44403C] transition-colors"
-              >
-                Contact Leadership
-              </button>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* MODAL: Full Leader Bio Modal */}
-      <AnimatePresence>
-        {selectedLeader && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+        {/* ─── MODAL: Full Resolution Image Lightbox ─── */}
+        <AnimatePresence>
+          {lightboxImage && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setSelectedLeader(null)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-            />
-
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className="relative w-full max-w-2xl bg-white rounded-2xl border border-[#E7E1D8] shadow-2xl overflow-hidden z-10 my-auto max-h-[90vh] flex flex-col"
-            >
-              <div className="flex items-center justify-between px-6 py-4 border-b border-[#E7E1D8] bg-[#FFF9ED]">
-                <span className="text-xs font-mono font-bold text-[#EDA81C] uppercase tracking-wider">
-                  DEWEG LEADERSHIP PROFILE
-                </span>
-                <button
-                  onClick={() => setSelectedLeader(null)}
-                  className="p-1 rounded-full text-[#78716C] hover:text-[#1C1917] hover:bg-[#EAE4D9]"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="p-6 sm:p-8 overflow-y-auto space-y-6">
-                <div className="flex items-center gap-5 flex-wrap sm:flex-nowrap">
-                  {selectedLeader.image && (
-                    <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden border border-[#E7E1D8] shrink-0 bg-[#1C1917]">
-                      <img
-                        src={selectedLeader.image}
-                        alt={selectedLeader.name}
-                        className="w-full h-full object-cover object-top"
-                      />
-                    </div>
-                  )}
-                  <div>
-                    <span className="text-xs font-mono text-[#EDA81C] uppercase tracking-wider font-semibold block">
-                      {selectedLeader.role}
-                    </span>
-                    <h3 className="font-serif text-2xl text-[#1C1917] font-semibold mt-0.5">
-                      {selectedLeader.name}
-                    </h3>
-                    {selectedLeader.secondaryRole && (
-                      <p className="text-xs font-serif italic text-[#78716C] mt-0.5">
-                        {selectedLeader.secondaryRole}
-                      </p>
-                    )}
-                    {selectedLeader.experience && (
-                      <span className="inline-block mt-2 px-2.5 py-0.5 rounded text-[11px] font-mono font-medium text-[#EDA81C] bg-[#FFF9ED] border border-[#E7E1D8]">
-                        {selectedLeader.experience}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                {selectedLeader.credentials && (
-                  <div className="p-3 rounded-lg bg-[#FAF8F5] border border-[#EFE9DF] text-xs font-mono text-[#1C1917]">
-                    <span className="text-[#78716C]">Credentials: </span>
-                    {selectedLeader.credentials}
-                  </div>
-                )}
-
-                <div>
-                  <h4 className="text-xs uppercase tracking-wider font-bold text-[#1C1917] font-sans mb-2">
-                    Executive Biography
-                  </h4>
-                  <p className="text-xs sm:text-sm text-[#57534E] font-sans leading-relaxed">
-                    {selectedLeader.bio}
-                  </p>
-                </div>
-
-                {selectedLeader.specialty && (
-                  <div>
-                    <h4 className="text-xs uppercase tracking-wider font-bold text-[#1C1917] font-sans mb-1.5">
-                      Domain Specialization
-                    </h4>
-                    <p className="text-xs text-[#57534E] font-sans">
-                      {selectedLeader.specialty}
-                    </p>
-                  </div>
-                )}
-
-                {selectedLeader.leadershipStatement && (
-                  <div className="p-4 rounded-xl bg-[#FFF9ED] border border-[#E7E1D8]">
-                    <p className="font-serif text-xs sm:text-sm text-[#1C1917] italic">
-                      "{selectedLeader.leadershipStatement}"
-                    </p>
-                  </div>
-                )}
-
-                <div className="pt-4 border-t border-[#E7E1D8] flex justify-end">
-                  <button
-                    onClick={() => setSelectedLeader(null)}
-                    className="px-5 py-2 rounded-lg bg-[#1C1917] text-white text-xs font-sans font-medium hover:bg-[#38332E] transition-colors"
-                  >
-                    Close Profile
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* MODAL: Full Resolution Image Lightbox */}
-      <AnimatePresence>
-        {lightboxImage && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
-            <button
+              transition={{ duration: 0.3 }}
               onClick={() => setLightboxImage(null)}
-              className="absolute top-5 right-5 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-              aria-label="Close image"
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-8 bg-[rgba(22,22,20,0.92)]"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Full resolution image"
             >
-              <X className="w-6 h-6" />
-            </button>
-            <img
-              src={lightboxImage}
-              alt="Full Resolution View"
-              className="max-h-[85vh] max-w-[90vw] object-contain rounded-xl shadow-2xl"
-            />
-          </div>
-        )}
-      </AnimatePresence>
-
-    </div>
+              <button
+                type="button"
+                onClick={() => setLightboxImage(null)}
+                className="group absolute top-5 right-5 sm:top-8 sm:right-8 inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#E7E4DC] hover:text-white cursor-pointer"
+              >
+                <span>Close</span>
+                <span aria-hidden="true">×</span>
+              </button>
+              <img
+                src={lightboxImage}
+                alt="Full resolution view"
+                className="max-h-[85vh] max-w-[90vw] object-contain"
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </MotionConfig>
   );
 }

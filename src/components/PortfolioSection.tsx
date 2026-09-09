@@ -55,7 +55,7 @@ export default function PortfolioSection({ onSelectProject }: PortfolioSectionPr
                   key={cat}
                   type="button"
                   onClick={() => handleFilter(cat)}
-                  className={`text-[11px] font-mono uppercase tracking-[0.18em] transition-colors duration-300 cursor-pointer ${
+                  className={`max-lg:tap-hit text-[11px] font-mono uppercase tracking-[0.18em] transition-colors duration-300 cursor-pointer ${
                     isActiveCat ? 'text-[#111111]' : 'text-[#8A8580] hover:text-[#111111]'
                   }`}
                 >

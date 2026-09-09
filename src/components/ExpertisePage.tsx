@@ -280,7 +280,7 @@ export default function ExpertisePage({
             <button
               type="button"
               onClick={onNavigateHome}
-              className="group inline-flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.12em] text-[#5C5A53] hover:text-[#141412] transition-colors cursor-pointer shrink-0"
+              className="group inline-flex items-center gap-3 font-mono text-[11px] uppercase tracking-[0.12em] text-[#5C5A53] hover:text-[#141412] transition-colors cursor-pointer shrink-0 max-lg:tap-hit"
             >
               <ArrowLeft className="w-3.5 h-3.5 transition-transform duration-300 group-hover:-translate-x-1" />
               <span className="whitespace-nowrap">Deweg Engineering</span>
@@ -301,7 +301,7 @@ export default function ExpertisePage({
             <button
               type="button"
               onClick={() => onNavigateToContact()}
-              className="group inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.14em] text-[#141412] hover:text-black transition-colors cursor-pointer"
+              className="group inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.14em] text-[#141412] hover:text-black transition-colors cursor-pointer max-lg:tap-hit"
             >
               <span className="whitespace-nowrap">Consult an Engineer</span>
               <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
@@ -431,7 +431,7 @@ export default function ExpertisePage({
               key={d.id}
               type="button"
               onClick={() => selectTab(d.id)}
-              className={`font-mono text-[11px] uppercase tracking-[0.1em] whitespace-nowrap transition-colors duration-300 cursor-pointer shrink-0 ${
+              className={`tap-hit font-mono text-[11px] uppercase tracking-[0.1em] whitespace-nowrap transition-colors duration-300 cursor-pointer shrink-0 ${
                 selectedDomainFilter === d.id ? 'text-[#141412]' : 'text-[#8A877E] hover:text-[#141412]'
               }`}
             >
@@ -561,7 +561,7 @@ export default function ExpertisePage({
                 setSearchQuery('');
                 setSelectedDomainFilter('all');
               }}
-              className="mt-6 font-mono text-[11px] uppercase tracking-[0.14em] text-[#141412] underline underline-offset-4 hover:text-[#C98A2D] transition-colors cursor-pointer"
+              className="mt-6 font-mono text-[11px] uppercase tracking-[0.14em] text-[#141412] underline underline-offset-4 hover:text-[#C98A2D] transition-colors cursor-pointer max-lg:tap-hit"
             >
               Reset Filters
             </button>
@@ -596,9 +596,9 @@ export default function ExpertisePage({
                 <button
                   type="button"
                   onClick={() => onNavigateToContact(domain.title)}
-                  className="group inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#141412] hover:text-black transition-colors cursor-pointer shrink-0"
-                >
-                  <span className="whitespace-nowrap">Engage Domain</span>
+className="group inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#141412] hover:text-black transition-colors cursor-pointer shrink-0 max-lg:tap-hit"
+                  >
+                    <span className="whitespace-nowrap">Engage Domain</span>
                   <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
                 </button>
               </div>
@@ -743,7 +743,7 @@ export default function ExpertisePage({
                         <button
                           type="button"
                           onClick={() => openModal(domain, 0)}
-                          className="group inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#141412] hover:text-black transition-colors cursor-pointer shrink-0"
+                          className="group inline-flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#141412] hover:text-black transition-colors cursor-pointer shrink-0 max-lg:tap-hit"
                         >
                           <span className="whitespace-nowrap">Inspect Full Resolution</span>
                           <ArrowUpRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover:translate-x-1 group-hover:-translate-y-1" />
@@ -861,7 +861,7 @@ export default function ExpertisePage({
               <button
                 type="button"
                 onClick={onNavigateHome}
-                className="group inline-flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#141412] hover:text-black transition-colors cursor-pointer"
+                className="group inline-flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-[0.14em] text-[#141412] hover:text-black transition-colors cursor-pointer max-lg:tap-hit"
               >
                 <ArrowLeft className="w-4 h-4 transition-transform duration-300 group-hover:-translate-x-1" />
                 <span className="whitespace-nowrap">Return to Home</span>
