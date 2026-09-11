@@ -2,7 +2,6 @@ import { useState, useEffect, MouseEvent } from 'react';
 import { motion } from 'motion/react';
 import { ArrowUp } from 'lucide-react';
 import { COMPANY_DETAILS, SERVICES_DATA } from '../data/engineeringData';
-import DewegLogo from './DewegLogo';
 
 interface FooterProps {
   onNavigate?: (page: 'home' | 'about' | 'expertise', targetSection?: string) => void;
@@ -61,7 +60,13 @@ export default function Footer({ onNavigate }: FooterProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-x-8 gap-y-12 py-16">
           {/* Cols 1–4: Practice statement */}
           <div className="lg:col-span-4">
-            <DewegLogo className="h-9 w-auto" variant="full" />
+            <img
+              src="/images/brand-logo.webp"
+              alt="Deweg Engineering Official Logo"
+              width={1600}
+              height={535}
+              className="h-9 w-auto object-contain"
+            />
             <p className="mt-6 max-w-xs font-sans text-[1rem] leading-[1.6] text-[#444440]">
               An engineering practice defined by load-path clarity, code compliance, and
               BIM-ready execution — from first intent to audited, construction-ready
@@ -97,7 +102,7 @@ export default function Footer({ onNavigate }: FooterProps) {
                     onClick={(e) => handleLinkClick(e, item)}
                     className="group inline-flex items-baseline gap-3 font-sans text-[14px] text-[#222220] transition-all duration-200 hover:text-black hover:translate-x-1"
                   >
-                    <span className="font-mono text-[10px] tracking-[0.1em] text-[#A8A49B] group-hover:text-[#88857B]">
+                    <span className="font-mono text-[10px] tracking-widest text-[#A8A49B] group-hover:text-[#88857B]">
                       {item.index}
                     </span>
                     <span>{item.label}</span>
@@ -125,7 +130,7 @@ export default function Footer({ onNavigate }: FooterProps) {
                     }}
                     className="group inline-flex items-baseline gap-3 font-sans text-[14px] text-[#222220] transition-all duration-200 hover:text-black hover:translate-x-1 cursor-pointer"
                   >
-                    <span className="font-mono text-[10px] tracking-[0.1em] text-[#A8A49B] group-hover:text-[#88857B]">
+                    <span className="font-mono text-[10px] tracking-widest text-[#A8A49B] group-hover:text-[#88857B]">
                       {srv.number}
                     </span>
                     <span>{srv.title}</span>
@@ -141,8 +146,8 @@ export default function Footer({ onNavigate }: FooterProps) {
               03 / Correspondence
             </h4>
             <div className="mt-5 space-y-4 font-sans text-[14px] leading-[1.6] text-[#444440]">
-              <p className="max-w-[300px]">{COMPANY_DETAILS.address}</p>
-              <p className="font-mono text-[11px] uppercase tracking-[0.1em] text-[#A8A49B]">
+              <p className="max-w-75">{COMPANY_DETAILS.address}</p>
+              <p className="font-mono text-[11px] uppercase tracking-widest text-[#A8A49B]">
                 CIN {COMPANY_DETAILS.cin}
               </p>
               <div className="space-y-1.5">
@@ -180,7 +185,7 @@ export default function Footer({ onNavigate }: FooterProps) {
           className="flex flex-col items-center justify-end pt-8 pb-10"
         >
           <span className="block font-sans font-semibold uppercase tracking-[-0.02em] leading-[0.82] whitespace-nowrap text-[#181816] text-[clamp(4rem,16.5vw,280px)]">
-            De Weg
+Deweg
           </span>
           <span className="mt-6 block font-sans font-medium uppercase whitespace-nowrap text-[#78766F] tracking-[0.6em] text-[clamp(0.8rem,1.8vw,1.4rem)]">
             Engineering
@@ -191,7 +196,7 @@ export default function Footer({ onNavigate }: FooterProps) {
       {/* ZONE 3 · Legal bar */}
       <div className="border-t border-[#DDD9CE]">
         <div className="max-w-[1600px] mx-auto px-[6vw] lg:px-[7vw] py-6 flex flex-col md:flex-row items-center justify-between gap-4 font-mono text-[11px] uppercase tracking-[0.14em] text-[#78766F]">
-          <p>© {new Date().getFullYear()} De Weg Engineering Pvt. Ltd.</p>
+          <p>© {new Date().getFullYear()} Deweg Engineering Pvt. Ltd.</p>
           <div className="flex items-center gap-5">
             <a href="#expertise-page" onClick={(e) => { e.preventDefault(); onNavigate?.('expertise', '#pmc'); }} className="hover:text-black transition-colors duration-200">
               ISO Compliance

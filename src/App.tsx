@@ -140,7 +140,7 @@ export default function App() {
       {/* Editorial Custom Cursor for Desktop */}
       <CustomCursor />
 
-      {/* Archipelago-style Preloader with DE WEG branding */}
+      {/* Archipelago-style Preloader with DEWEG branding */}
       <Preloader onComplete={() => setIsPreloaderDone(true)} />
 
       {/* Fixed Frosted Navbar */}

@@ -438,14 +438,18 @@ type HeroScrollStyle = {
 
 // Kinetic headline: each word rises from behind a mask with a staggered delay,
 // then a soft light sweeps across the finished line every few seconds.
+// Words listed in `accentIndexes` are filled with the brand gold gradient
+// (bg-clip-text) for a bright "wow" beat on the key phrase.
 function KineticHeadline({
   ready,
   text,
   className,
+  accentIndexes = [],
 }: {
   ready: boolean;
   text: string;
   className: string;
+  accentIndexes?: number[];
 }) {
   const words = text.split(' ');
   return (
@@ -456,7 +460,11 @@ function KineticHeadline({
           className="inline-block overflow-hidden align-top pb-[0.08em] -mb-[0.08em]"
         >
           <motion.span
-            className="inline-block will-change-transform"
+            className={`inline-block will-change-transform ${
+              accentIndexes.includes(i)
+                ? 'bg-gradient-to-r from-[#D49110] via-[#EDA81C] to-[#C9860F] bg-clip-text text-transparent'
+                : ''
+            }`}
             initial={{ y: '118%', rotate: 3 }}
             animate={ready ? { y: '0%', rotate: 0 } : {}}
             transition={{ delay: 0.35 + i * 0.065, duration: 0.9, ease: [0.16, 1, 0.3, 1] }}
@@ -524,7 +532,7 @@ function HeroEyebrow({ ready, center }: { ready: boolean; center?: boolean }) {
         transition={{ delay: 0.15, duration: 0.9, ease: 'easeOut' }}
         className="font-mono text-[13px] uppercase tracking-[0.3em] text-[#0D9488]/80"
       >
-        DE WEG Engineering · Chennai
+        DEWEG Engineering · Chennai
       </motion.p>
       <motion.span
         initial={{ scaleX: 0 }}
@@ -554,12 +562,31 @@ function HeroChapter({
       >
         {/* Legibility scrim behind the centered headline */}
         <div className="absolute -inset-10 bg-[#F6F8F7]/65 blur-2xl pointer-events-none" />
+
+        {/* Centered surveyor compass rings - slow counter-rotation adds the wow */}
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden>
+          <motion.span
+            animate={{ rotate: 360 }}
+            transition={{ repeat: Infinity, duration: 90, ease: 'linear' }}
+            className="absolute w-[min(84vw,920px)] aspect-square rounded-full border border-dashed border-[#0D9488]/20"
+          />
+          <motion.span
+            animate={{ rotate: -360 }}
+            transition={{ repeat: Infinity, duration: 60, ease: 'linear' }}
+            className="absolute w-[min(60vw,660px)] aspect-square rounded-full border border-[#0D9488]/10"
+          />
+          <span className="absolute font-mono text-[10px] tracking-[0.5em] text-[#0D9488]/25">
+            N&nbsp;E&nbsp;W&nbsp;S&nbsp;S&nbsp;E
+          </span>
+        </div>
+
         <div className="relative px-8 text-center max-w-[1200px]">
           <HeroEyebrow ready={ready} center />
           <KineticHeadline
             ready={ready}
             text="Engineering the Future Through Digital Precision."
-            className="font-sans font-bold text-[#0F172A] leading-[0.96] tracking-[-0.04em] text-[clamp(3rem,7vw,6.75rem)]"
+            accentIndexes={[4, 5]}
+            className="font-display font-black text-[#0F172A] leading-[0.96] tracking-[-0.04em] text-[clamp(3rem,7vw,6.75rem)]"
           />
           <div className="mt-8 mx-auto max-w-[680px]">
             <KineticLine
@@ -574,7 +601,7 @@ function HeroChapter({
             transition={{ delay: 1.5, duration: 0.7 }}
             className="mt-10"
           >
-            <span className="scrolly-scroll-cue">
+            <span className="scrolly-scroll-cue scrolly-scroll-cue--center">
               <span>Scroll to explore</span>
               <span className="scrolly-scroll-line">
                 <motion.span
@@ -598,7 +625,8 @@ function HeroChapter({
           <KineticHeadline
             ready={ready}
             text="Engineering the Future Through Digital Precision."
-            className="font-sans font-bold text-[#0F172A] leading-[1.0] tracking-[-0.04em] text-[clamp(2.3rem,4vw,3.6rem)]"
+            accentIndexes={[4, 5]}
+            className="font-display font-black text-[#0F172A] leading-[1.0] tracking-[-0.04em] text-[clamp(2.3rem,4vw,3.6rem)]"
           />
           <div className="mt-6 max-w-[560px]">
             <KineticLine
@@ -635,7 +663,8 @@ function HeroChapter({
           <KineticHeadline
             ready={ready}
             text="Engineering the Future Through Digital Precision."
-            className="font-sans font-bold text-[#0F172A] leading-[1.04] tracking-[-0.03em] text-[clamp(1.8rem,8vw,2.6rem)]"
+            accentIndexes={[4, 5]}
+            className="font-display font-black text-[#0F172A] leading-[1.04] tracking-[-0.03em] text-[clamp(1.8rem,8vw,2.6rem)]"
           />
           <div className="mt-4">
             <KineticLine
@@ -644,6 +673,23 @@ function HeroChapter({
               className="font-sans text-[0.95rem] leading-[1.6] text-[#475569]"
             />
           </div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={ready ? { opacity: 1 } : {}}
+            transition={{ delay: 1.5, duration: 0.7 }}
+            className="mt-8"
+          >
+            <span className="scrolly-scroll-cue scrolly-scroll-cue--center">
+              <span>Scroll to explore</span>
+              <span className="scrolly-scroll-line">
+                <motion.span
+                  animate={{ y: ['-100%', '100%'] }}
+                  transition={{ repeat: Infinity, duration: 2.2, ease: 'easeInOut' }}
+                  className="scrolly-scroll-dot"
+                />
+              </span>
+            </span>
+          </motion.div>
         </div>
       </div>
     </div>
@@ -708,7 +754,7 @@ function CtaChapter() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-            className="font-sans font-bold text-[#0F172A] leading-[0.98] tracking-[-0.03em] text-[clamp(2rem,4vw,3.5rem)]"
+            className="font-display font-black text-[#0F172A] leading-[0.98] tracking-[-0.03em] text-[clamp(2rem,4vw,3.5rem)]"
           >
             Let&apos;s build what&apos;s next.
           </motion.h2>

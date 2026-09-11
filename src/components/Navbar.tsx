@@ -1,7 +1,6 @@
 import { useState, useEffect, MouseEvent } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Menu, X, ArrowUpRight, Compass } from 'lucide-react';
-import DewegLogo from './DewegLogo';
 
 interface NavbarProps {
   activePage?: 'home' | 'about' | 'expertise';
@@ -86,7 +85,13 @@ export default function Navbar({ activePage = 'home', onNavigate, onOpenConsulta
             className="group flex items-center gap-3 text-[#0C0A09] focus:outline-none cursor-pointer"
             aria-label="Deweg Engineering Home"
           >
-            <DewegLogo className="h-8 sm:h-9 w-auto transition-transform duration-300 group-hover:scale-[1.02]" variant="full" />
+            <img
+              src="/images/brand-logo.webp"
+              alt="Deweg Engineering Official Logo"
+              width={1600}
+              height={535}
+              className="h-8 sm:h-9 w-auto object-contain transition-transform duration-300 group-hover:scale-[1.02]"
+            />
           </a>
 
           {/* Desktop Nav Items */}

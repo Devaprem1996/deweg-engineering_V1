@@ -9,7 +9,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
   const [stage, setStage] = useState<'visible' | 'exit' | 'done'>('visible');
 
   useEffect(() => {
-    // Stage 1: Display DE WEG text
+    // Stage 1: Display DEWEG text
     const exitTimer = setTimeout(() => {
       setStage('exit');
     }, 1400);
@@ -54,7 +54,7 @@ export default function Preloader({ onComplete }: PreloaderProps) {
               className="flex items-baseline gap-3"
             >
               <h1 className="font-serif text-5xl sm:text-7xl md:text-8xl tracking-tight text-[#1C1917]">
-                DE WEG
+                DEWEG
               </h1>
               <span className="w-2.5 h-2.5 rounded-full bg-[#EDA81C] mb-3" />
             </motion.div>

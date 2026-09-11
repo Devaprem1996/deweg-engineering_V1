@@ -70,7 +70,7 @@ export const SITE_SECTIONS = [
     id: 'hero',
     name: 'Section 01: Concept to Creation',
     wixCompId: 'comp-m8jv6y90',
-    title: 'DE WEG — PATH TO PERFECTION',
+    title: 'DEWEG — PATH TO PERFECTION',
     subtitle: 'From Concept to Creation',
     mediaType: 'image & video',
     mediaUrl: OFFICIAL_ASSETS.section1DrawingImg,
@@ -686,7 +686,7 @@ export const TESTIMONIALS_DATA: Testimonial[] = [
   },
   {
     id: 'test-2',
-    quote: 'From load-path clarity to error-proof peer review, De Weg became our trusted structural partner. Their response time and technical mastery set the standard on our commercial high-rise framework.',
+    quote: 'From load-path clarity to error-proof peer review, Deweg became our trusted structural partner. Their response time and technical mastery set the standard on our commercial high-rise framework.',
     clientName: 'Julian Sterling',
     clientRole: 'Principal Infrastructure Lead',
     company: 'Sterling & Morath Associates',

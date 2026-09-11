@@ -1,18 +1,15 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from 'motion/react';
 import { CORE_PRINCIPLES } from '../data/engineeringData';
 
-const VIDEO_SRC = '/videos/section4-cutaway.mp4';
+const TOTAL_FRAMES = 120;
+const FRAME_PATH = '/frames/section4/frame_';
+
+function framePath(index: number): string {
+  return `${FRAME_PATH}${String(index + 1).padStart(4, '0')}.webp`;
+}
 
 const PRINCIPLES = CORE_PRINCIPLES;
-
-const HUD_STATES: string[][] = [
-  ['LOAD PATH: DEFINED', 'STRUCTURE: VERIFIED'],
-  ['CODE: COMPLIANT', 'BUILDABILITY: REVIEWED'],
-  ['BIM: READY', 'MODEL: PARAMETRIC'],
-  ['REVISION: CONTROLLED', 'WORKFLOW: TRACEABLE'],
-  ['REVIEW: VERIFIED', 'AUDIT: COMPLETE'],
-];
 
 const STAGE_LABELS = [
   'INTACT BUILDING',
@@ -31,9 +28,13 @@ const CARD_TRANSITION = { duration: 0.5, ease: [0.22, 1, 0.36, 1] } as const;
 
 export default function AboutIntro() {
   const sectionRef = useRef<HTMLElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const durationRef = useRef(5);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const imagesRef = useRef<HTMLImageElement[]>([]);
+  const lastFrameRef = useRef(-1);
   const [active, setActive] = useState(0);
+  const [ready, setReady] = useState(false);
+  const [drawFrame0, setDrawFrame0] = useState(false);
+  const [loadedCount, setLoadedCount] = useState(0);
 
   const percentRef = useRef<HTMLSpanElement>(null);
   const stageLabelRef = useRef<HTMLSpanElement>(null);
@@ -43,13 +44,51 @@ export default function AboutIntro() {
     offset: ['start start', 'end end'],
   });
 
+  // Paint one frame, object-cover fitted across the full viewport.
+  const drawFrame = (frameIndex: number) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const cssW = rect.width || window.innerWidth;
+    const cssH = rect.height || window.innerHeight;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    if (canvas.width !== Math.round(cssW * dpr) || canvas.height !== Math.round(cssH * dpr)) {
+      canvas.width = Math.round(cssW * dpr);
+      canvas.height = Math.round(cssH * dpr);
+    }
+
+    const img = imagesRef.current[frameIndex];
+    if (!img || !img.complete || !img.naturalWidth) return;
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cssW, cssH);
+
+    // object-cover equivalent
+    const iw = img.naturalWidth;
+    const ih = img.naturalHeight;
+    const scale = Math.max(cssW / iw, cssH / ih);
+    const w = iw * scale;
+    const h = ih * scale;
+    const x = (cssW - w) / 2;
+    const y = (cssH - h) / 2;
+    ctx.drawImage(img, x, y, w, h);
+  };
+
   useMotionValueEvent(scrollYProgress, 'change', (latest) => {
     const stage = Math.min(PRINCIPLES.length - 1, Math.floor(latest * PRINCIPLES.length));
     if (stage !== active) setActive(stage);
 
-    const video = videoRef.current;
-    if (video && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
-      video.currentTime = latest * durationRef.current;
+    const frameIndex = Math.min(
+      TOTAL_FRAMES - 1,
+      Math.max(0, Math.round(latest * (TOTAL_FRAMES - 1)))
+    );
+    if (frameIndex !== lastFrameRef.current) {
+      lastFrameRef.current = frameIndex;
+      drawFrame(frameIndex);
     }
 
     if (percentRef.current) {
@@ -60,8 +99,51 @@ export default function AboutIntro() {
     }
   });
 
+  // Preload all frames; the first one paints as soon as it arrives.
+  useEffect(() => {
+    const images: HTMLImageElement[] = [];
+    for (let i = 0; i < TOTAL_FRAMES; i++) {
+      const img = new Image();
+      img.src = framePath(i);
+      img.fetchPriority = i < 5 ? 'high' : 'low';
+      images.push(img);
+    }
+
+    imagesRef.current = images;
+
+    let loaded = 0;
+    const onLoad = () => {
+      loaded += 1;
+      setLoadedCount(loaded);
+      if (loaded === 1) setDrawFrame0(true);
+      if (loaded >= TOTAL_FRAMES) setReady(true);
+    };
+
+    images.forEach((img) => {
+      if (img.complete) onLoad();
+      else {
+        img.onload = onLoad;
+        img.onerror = onLoad;
+      }
+    });
+  }, []);
+
+  // Paint frame 0 once available (and on resize).
+  useEffect(() => {
+    if (!drawFrame0) return;
+    drawFrame(0);
+  }, [drawFrame0]);
+
+  useEffect(() => {
+    const onResize = () => {
+      if (lastFrameRef.current >= 0) drawFrame(lastFrameRef.current);
+      else if (drawFrame0) drawFrame(0);
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [drawFrame0]);
+
   const principle = PRINCIPLES[active];
-  const hud = HUD_STATES[active];
 
   return (
     <section
@@ -72,19 +154,11 @@ export default function AboutIntro() {
     >
       {/* Sticky full-viewport container */}
       <div className="sticky top-0 h-screen w-full overflow-hidden bg-[#0A0A0A]">
-        {/* Full-viewport background video */}
-        <video
-          ref={videoRef}
-          src={VIDEO_SRC}
-          muted
-          playsInline
-          preload="auto"
-          disablePictureInPicture
-          onLoadedMetadata={(e) => {
-            const d = e.currentTarget.duration;
-            if (d && Number.isFinite(d) && d > 0) durationRef.current = d;
-          }}
-          className="absolute inset-0 w-full h-full object-cover"
+        {/* Full-viewport scroll-scrubbed frame canvas */}
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 w-full h-full"
+          style={{ opacity: ready ? 1 : 0, transition: 'opacity 1s ease' }}
         />
 
         {/* Subtle overlay for legibility */}
@@ -133,54 +207,25 @@ export default function AboutIntro() {
                 active % 2 === 0 ? 'justify-start' : 'justify-end'
               }`}
             >
-              <div className="relative w-full max-w-[420px] pointer-events-auto">
-                {/* Card with frosted glass effect */}
-                <div className="rounded-2xl bg-white/8 backdrop-blur-xl border border-white/10 p-7 md:p-8">
-                  {/* Stage number */}
-                  <span
-                    aria-hidden="true"
-                    className="absolute -top-6 -right-3 font-mono font-bold text-[6rem] leading-none text-white/[0.04] select-none z-0"
-                  >
-                    {principle.number}
+              <div className="relative w-full max-w-[820px] pointer-events-auto">
+                <div className="flex items-center gap-4 mb-6">
+                  <span className="w-12 h-px bg-[#0D9488]/60" />
+                  <span className="font-mono text-[12px] font-bold uppercase tracking-[0.24em] text-[#0D9488] drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
+                    {STAGE_LABELS[active]}
                   </span>
-
-                  <div className="relative">
-                    <div className="flex items-center gap-3 mb-4">
-                      <span className="font-mono text-[13px] font-bold tracking-[0.15em] text-[#EDA81C]">
-                        {principle.number}
-                      </span>
-                      <span className="w-10 h-px bg-[#0D9488]/50" />
-                      <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#0D9488]/70">
-                        {STAGE_LABELS[active]}
-                      </span>
-                    </div>
-
-                    <h3 className="font-sans text-[1.6rem] font-bold tracking-[-0.02em] text-white leading-[1.1] mb-3">
-                      {principle.title}
-                    </h3>
-
-                    <p className="font-sans text-[15px] leading-[1.7] text-white/65 mb-5">
-                      {principle.statement}
-                    </p>
-
-                    {/* HUD status chips */}
-                    <div className="flex flex-wrap gap-2 mb-5">
-                      {hud.map((tag) => (
-                        <span
-                          key={tag}
-                          className="inline-flex items-center gap-1.5 rounded-[999px] px-3 py-1 bg-[#0D9488]/10 border border-[#0D9488]/30 font-mono text-[9px] font-semibold tracking-[0.14em] text-[#0D9488] uppercase"
-                        >
-                          <span className="w-1 h-1 rounded-full bg-[#0D9488]" />
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-
-                    <p className="font-sans text-[13px] leading-[1.65] text-white/45 border-t border-white/10 pt-4">
-                      {principle.description}
-                    </p>
-                  </div>
                 </div>
+
+                <h3 className="font-display text-[clamp(2.6rem,5vw,4.5rem)] font-bold tracking-[-0.035em] text-white leading-[1.02] mb-6 drop-shadow-[0_4px_24px_rgba(0,0,0,0.9)]">
+                  {principle.title}
+                </h3>
+
+                <p className="font-sans text-[clamp(1.3rem,2vw,1.7rem)] font-semibold tracking-[-0.01em] text-white leading-[1.35] max-w-[700px] mb-5 drop-shadow-[0_2px_16px_rgba(0,0,0,0.95)]">
+                  {principle.statement}
+                </p>
+
+                <p className="font-sans text-[clamp(1.05rem,1.4vw,1.2rem)] font-medium text-white/90 leading-[1.55] max-w-[680px] drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)]">
+                  {principle.description}
+                </p>
               </div>
             </motion.div>
           </AnimatePresence>
@@ -225,12 +270,22 @@ export default function AboutIntro() {
           </div>
         </div>
 
-        {/* Stage label chip over video */}
+        {/* Stage label chip over canvas */}
         <div className="absolute top-6 left-1/2 -translate-x-1/2 z-30 px-3 py-1.5 rounded-[6px] bg-white/10 backdrop-blur-md border border-white/15">
           <span ref={stageLabelRef} className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/80">
             {STAGE_LABELS[active]}
           </span>
         </div>
+
+        {/* Loading progress hairline */}
+        {!ready && (
+          <div className="absolute inset-x-0 bottom-0 z-50 h-[2px] bg-white/10">
+            <div
+              className="h-full bg-[#0D9488] transition-[width] duration-300"
+              style={{ width: `${(loadedCount / TOTAL_FRAMES) * 100}%` }}
+            />
+          </div>
+        )}
       </div>
     </section>
   );

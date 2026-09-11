@@ -92,7 +92,7 @@ export default function Hero({ introReady, onNavigateToContact }: HeroProps) {
           transition={{ duration: 0.8, ease: 'easeOut' }}
           className="mb-10 text-[11px] font-mono uppercase tracking-[0.3em] text-[#8A8580]"
         >
-          DE WEG — Engineering Consultancy · Chennai
+          DEWEG — Engineering Consultancy · Chennai
         </motion.p>
 
         {/* Display headline: 5 words, sentence case, word-by-word reveal */}

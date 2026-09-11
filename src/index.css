@@ -405,6 +405,20 @@ html.lenis, html.lenis body {
   color: #0F172A;
 }
 
+/* Centered variant for the intro hero — aligned under the headline */
+.scrolly-scroll-cue--center {
+  align-items: center;
+  text-align: center;
+  margin-inline: auto;
+}
+.scrolly-scroll-cue--center .scrolly-scroll-line {
+  height: 56px;
+  background: rgba(237, 168, 28, 0.28);
+}
+.scrolly-scroll-cue--center .scrolly-scroll-dot {
+  background: #EDA81C;
+}
+
 .scrolly-scroll-line {
   display: block;
   width: 1px;
