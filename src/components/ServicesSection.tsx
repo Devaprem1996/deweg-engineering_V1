@@ -452,7 +452,7 @@ export default function ServicesSection({ onSelectService }: ServicesSectionProp
                           </span>
                         )}
                         {asset.type === 'gif' && (
-                          <span className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#0284C7] text-white">
+                          <span className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-[#0D9488] text-white">
                             <Sparkles className="w-2.5 h-2.5" />
                             3D Model
                           </span>

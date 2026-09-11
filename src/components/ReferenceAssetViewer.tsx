@@ -80,7 +80,7 @@ export default function ReferenceAssetViewer({
                 </span>
               )}
               {activeAsset.type === 'gif' && (
-                <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-[#0284C7] text-white">
+                <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold bg-[#0D9488] text-white">
                   <Sparkles className="w-3 h-3" />
                   3D Animation Model
                 </span>

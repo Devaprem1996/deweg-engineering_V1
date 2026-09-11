@@ -115,7 +115,7 @@ export default function ServiceModal({ service, onClose }: ServiceModalProps) {
                           </div>
                         )}
                         {asset.type === 'gif' && (
-                          <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded bg-[#0284C7] text-[9px] font-mono font-bold text-white">
+                          <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 rounded bg-[#0D9488] text-[9px] font-mono font-bold text-white">
                             3D Model
                           </div>
                         )}

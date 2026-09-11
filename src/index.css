@@ -1,10 +1,116 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Geist Sans";
+  src: url("/src/assets/fonts/geist-sans-variable.woff2") format("woff2-variations");
+  font-weight: 100 950;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Sans";
+  src: url("/src/assets/fonts/geist-sans-italic-variable.woff2") format("woff2-variations");
+  font-weight: 100 950;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/src/assets/fonts/geist-mono-variable.woff2") format("woff2-variations");
+  font-weight: 100 950;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/src/assets/fonts/geist-mono-italic-variable.woff2") format("woff2-variations");
+  font-weight: 100 950;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Cabinet Grotesk - display/headlines (structural grotesque) */
+@font-face {
+  font-family: "Cabinet Grotesk";
+  src: url("/src/assets/fonts/cabinet-grotesk-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cabinet Grotesk";
+  src: url("/src/assets/fonts/cabinet-grotesk-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cabinet Grotesk";
+  src: url("/src/assets/fonts/cabinet-grotesk-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cabinet Grotesk";
+  src: url("/src/assets/fonts/cabinet-grotesk-800.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cabinet Grotesk";
+  src: url("/src/assets/fonts/cabinet-grotesk-900.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Satoshi - body copy (neutral grotesque) */
+@font-face {
+  font-family: "Satoshi";
+  src: url("/src/assets/fonts/satoshi-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/src/assets/fonts/satoshi-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/src/assets/fonts/satoshi-700.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Satoshi";
+  src: url("/src/assets/fonts/satoshi-900.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
-  --font-serif: "Plus Jakarta Sans", "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-display: "Plus Jakarta Sans", "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-sans: "Plus Jakarta Sans", "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-serif: "Cabinet Grotesk", "Geist Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Cabinet Grotesk", "Geist Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: "Satoshi", "Geist Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 
   --color-canvas: #FBF9F5;
   --color-canvas-alt: #F3EFE8;
@@ -24,6 +130,7 @@
 @layer base {
   html {
     font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
     background-color: #FBF9F5;
     color: #1C1917;
     letter-spacing: -0.01em;
@@ -32,14 +139,25 @@
   body {
     background-color: #FBF9F5;
     color: #1C1917;
+    font-feature-settings: "cv11", "ss01";
   }
 
   h1, h2, h3, h4, .font-serif {
     font-family: var(--font-serif);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+  }
+
+  p, li {
+    line-height: 1.7;
   }
 
   .font-display {
     font-family: var(--font-display);
+  }
+
+  .font-mono {
+    font-feature-settings: "cv03", "cv04", "cv11";
   }
 }
 
@@ -126,4 +244,257 @@ html.lenis, html.lenis body {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ============================================================
+   SCROLLYTELLING — Blueprint Grid, HUD Tags, Milestone Text
+   ============================================================ */
+
+/* The drawing board: off-white canvas + blueprint grid + ruler ticks.
+   The video frames paint transparently on top, so this layer owns
+   the background color. */
+.scrolly-blueprint-grid {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-color: #F6F8F7;
+  overflow: hidden;
+}
+
+.scrolly-blueprint-grid::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(#E2E8F0 1px, transparent 1px),
+    linear-gradient(90deg, #E2E8F0 1px, transparent 1px);
+  background-size: 32px 32px;
+  opacity: 0.15;
+  mask-image: radial-gradient(ellipse 85% 75% at 50% 50%, black 35%, transparent 78%);
+  -webkit-mask-image: radial-gradient(ellipse 85% 75% at 50% 50%, black 35%, transparent 78%);
+}
+
+.scrolly-blueprint-grid::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(#E2E8F0 1px, transparent 1px),
+    linear-gradient(90deg, #E2E8F0 1px, transparent 1px);
+  background-size: 160px 160px;
+  opacity: 0.12;
+  mask-image: radial-gradient(ellipse 85% 75% at 50% 50%, black 35%, transparent 80%);
+  -webkit-mask-image: radial-gradient(ellipse 85% 75% at 50% 50%, black 35%, transparent 80%);
+}
+
+/* Bottom ruler strip — millimeter engineering scale */
+.scrolly-blueprint-grid .scrolly-ruler {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 22px;
+  pointer-events: none;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(100, 116, 139, 0.35) 0 1px,
+    transparent 1px 10px
+  );
+  mask-image: linear-gradient(90deg, transparent, black 12%, black 88%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, black 12%, black 88%, transparent);
+}
+
+/* Soft vignette so the model seats into the page instead of hard edges */
+.scrolly-vignette {
+  background: radial-gradient(
+    ellipse at center,
+    transparent 52%,
+    rgba(248, 250, 252, 0.5) 100%
+  );
+  z-index: 20;
+}
+
+/* HUD tags — floating technical labels */
+.scrolly-hud-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(13, 148, 136, 0.25);
+  border-radius: 4px;
+  box-shadow: 0 2px 12px rgba(13, 148, 136, 0.08);
+}
+
+.scrolly-hud-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #0D9488;
+  animation: scrolly-pulse 2s ease-in-out infinite;
+}
+
+.scrolly-hud-text {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #0D9488;
+}
+
+@keyframes scrolly-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+
+/* Milestone number badge */
+.scrolly-milestone-number {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #F97316;
+  background: rgba(249, 115, 22, 0.08);
+  border: 1px solid rgba(249, 115, 22, 0.2);
+  padding: 3px 10px;
+  border-radius: 3px;
+  margin-bottom: 12px;
+}
+
+/* Milestone title */
+.scrolly-milestone-title {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: clamp(1.8rem, 3.4vw, 3.1rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: #0F172A;
+  margin-bottom: 12px;
+}
+
+/* Milestone description */
+.scrolly-milestone-desc {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: clamp(1.1rem, 1.5vw, 1.4rem);
+  line-height: 1.6;
+  color: #475569;
+  max-width: 520px;
+}
+
+/* Scroll cue */
+.scrolly-scroll-cue {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: #475569;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+.scrolly-scroll-cue:hover {
+  color: #0F172A;
+}
+
+.scrolly-scroll-line {
+  display: block;
+  width: 1px;
+  height: 44px;
+  background: rgba(15, 23, 42, 0.15);
+  overflow: hidden;
+}
+
+.scrolly-scroll-dot {
+  display: block;
+  width: 1px;
+  height: 100%;
+  background: #0D9488;
+}
+
+/* CTA buttons */
+.scrolly-cta-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 32px;
+  background: #0F172A;
+  color: #F8FAFC;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.3s;
+  text-decoration: none;
+}
+.scrolly-cta-primary:hover {
+  background: #1E293B;
+  transform: translateY(-1px);
+}
+
+.scrolly-cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  padding: 14px 24px;
+  color: #475569;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color 0.3s, border-color 0.3s;
+  text-decoration: none;
+}
+.scrolly-cta-secondary:hover {
+  color: #0F172A;
+  border-color: #94A3B8;
+}
+
+/* Editorial ghost chapter number behind milestone copy */
+.scrolly-milestone-ghost {
+  position: absolute;
+  left: -0.06em;
+  bottom: -0.52em;
+  z-index: -1;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: clamp(5rem, 12vh, 8rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  color: rgba(13, 148, 136, 0.06);
+  -webkit-text-stroke: 1px rgba(13, 148, 136, 0.12);
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* Technical metric chip row under milestone descriptions */
+.scrolly-metric-chip {
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #0D9488;
+  background: rgba(13, 148, 136, 0.06);
+  border: 1px solid rgba(13, 148, 136, 0.22);
+  padding: 5px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
 }

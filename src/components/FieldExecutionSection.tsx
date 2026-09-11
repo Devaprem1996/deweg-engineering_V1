@@ -1,5 +1,11 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { useRef, useState } from 'react';
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useTransform,
+  useMotionValueEvent,
+} from 'motion/react';
 import { X } from 'lucide-react';
 import { OFFICIAL_ASSETS } from '../data/engineeringData';
 import { AnimatedHeading, Parallax } from './AnimatedText';
@@ -7,6 +13,31 @@ import { AnimatedHeading, Parallax } from './AnimatedText';
 export default function FieldExecutionSection() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'fabrication' | 'erection'>('fabrication');
+
+  // Scanner wipe: the field photo starts as a technical blueprint wireframe and a
+  // glowing scanline sweeps left → right (clip-path driven by scroll progress),
+  // revealing the photoreal site image underneath.
+  const imageBandRef = useRef<HTMLDivElement>(null);
+  const scanReadoutRef = useRef<HTMLSpanElement>(null);
+  const { scrollYProgress } = useScroll({
+    target: imageBandRef,
+    offset: ['start 0.85', 'end 0.1'],
+  });
+
+  const scanPct = useTransform(scrollYProgress, [0, 1], [0, 100]);
+  const wireFrameClip = useTransform(
+    scrollYProgress,
+    [0, 1],
+    ['inset(0 0 0 0%)', 'inset(0 0 0 100%)']
+  );
+  const scanlineX = useTransform(scrollYProgress, [0, 1], ['0%', '100%']);
+  const scanHudOpacity = useTransform(scrollYProgress, [0, 0.04, 0.96, 1], [0, 1, 1, 0]);
+
+  useMotionValueEvent(scrollYProgress, 'change', (latest) => {
+    if (scanReadoutRef.current) {
+      scanReadoutRef.current.textContent = `${String(Math.round(latest * 100)).padStart(2, '0')}%`;
+    }
+  });
 
   const tabs = [
     {
@@ -115,17 +146,84 @@ export default function FieldExecutionSection() {
             >
               <Parallax offset={24} className="w-full">
                 <div
+                  ref={imageBandRef}
                   className="relative aspect-[16/8] lg:aspect-[21/9] overflow-hidden rounded-[6px] bg-[#EBE9E1] border border-[#E2E0D8] cursor-pointer group"
                   onClick={() => setSelectedImage(current.url)}
                 >
+                  {/* Bottom layer: finished photoreal field image */}
                   <img
                     src={current.url}
                     alt={current.title}
-                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                     loading="lazy"
                     decoding="async"
                     referrerPolicy="no-referrer"
                   />
+
+                  {/* Top layer: blueprint wireframe version — clipped away as the
+                      scanline sweeps left → right, revealing the photo beneath */}
+                  <motion.div
+                    className="absolute inset-0 z-[5] will-change-[clip-path]"
+                    style={{ clipPath: wireFrameClip }}
+                  >
+                    <div className="absolute inset-0 bg-[#DDEBF0]">
+                      <div
+                        className="absolute inset-0 opacity-30"
+                        style={{
+                          backgroundImage:
+                            'linear-gradient(rgba(13, 148, 136, 0.35) 1px, transparent 1px), linear-gradient(90deg, rgba(13, 148, 136, 0.35) 1px, transparent 1px)',
+                          backgroundSize: '28px 28px',
+                        }}
+                      />
+                      <div
+                        className="absolute inset-0 opacity-20"
+                        style={{
+                          backgroundImage:
+                            'linear-gradient(rgba(13, 148, 136, 0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(13, 148, 136, 0.4) 1px, transparent 1px)',
+                          backgroundSize: '140px 140px',
+                        }}
+                      />
+                    </div>
+                    <img
+                      src={current.url}
+                      alt={`${current.title} — blueprint wireframe`}
+                      className="absolute inset-0 w-full h-full object-cover mix-blend-multiply"
+                      style={{
+                        filter: 'grayscale(1) invert(0.88) contrast(2.1) brightness(0.95) saturate(0.6)',
+                      }}
+                      loading="lazy"
+                      decoding="async"
+                      referrerPolicy="no-referrer"
+                    />
+                  </motion.div>
+
+                  {/* Glowing cyan/orange scanline at the reveal boundary */}
+                  <motion.div
+                    className="absolute top-0 bottom-0 z-10 pointer-events-none"
+                    style={{ left: scanlineX }}
+                  >
+                    <div
+                      className="relative h-full w-[2px] bg-gradient-to-b from-[#0D9488] via-white to-[#EDA81C]"
+                      style={{
+                        boxShadow:
+                          '0 0 12px 2px rgba(13, 148, 136, 0.65), 0 0 28px 5px rgba(237, 168, 28, 0.45)',
+                      }}
+                    />
+                  </motion.div>
+
+                  {/* Scan HUD readout */}
+                  <motion.div
+                    style={{ opacity: scanHudOpacity }}
+                    className="absolute top-4 right-4 z-20 pointer-events-none hidden sm:block"
+                  >
+                    <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-[#0D9488]">
+                      <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#EDA81C] animate-pulse" />
+                      <span>Scan</span>
+                      <span ref={scanReadoutRef} className="text-[#111111]">
+                        00%
+                      </span>
+                    </div>
+                  </motion.div>
 
                   {/* Legibility wash + cutline */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent pointer-events-none" />

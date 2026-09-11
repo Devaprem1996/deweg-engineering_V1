@@ -8,7 +8,7 @@ import Lenis from 'lenis';
 import CustomCursor from './components/CustomCursor';
 import Preloader from './components/Preloader';
 import Navbar from './components/Navbar';
-import Hero from './components/Hero';
+import ScrollytellingHero from './components/ScrollytellingHero';
 import AboutIntro from './components/AboutIntro';
 import AboutPage from './components/AboutPage';
 import ExpertisePage from './components/ExpertisePage';
@@ -171,11 +171,8 @@ export default function App() {
       ) : (
         /* Main Single-Page Sections matching deweg-engineering.com */
         <main id="main-content">
-          {/* Section 01: European Minimal Creative Hero */}
-          <Hero
-            introReady={isPreloaderDone}
-            onNavigateToContact={() => handleNavigate('home', '#contact')}
-          />
+          {/* Section 01: Cinematic Scrollytelling Hero */}
+          <ScrollytellingHero />
 
           {/* Section 04: "To Define The Path" / Practice Philosophy */}
           <AboutIntro />
