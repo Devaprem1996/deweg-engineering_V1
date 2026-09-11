@@ -22,6 +22,17 @@ const CATEGORIES = [
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
+/* Direction-free staggered reveal used inside the active record sheet */
+const recordWrapper = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.06, delayChildren: 0.08 } },
+};
+
+const recordItem = (reduced: boolean) => ({
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { duration: reduced ? 0 : 0.45, ease: EASE } },
+});
+
 export default function PortfolioSection({ onSelectProject }: PortfolioSectionProps) {
   const [activeFilter, setActiveFilter] = useState<string>('All');
   const [active, setActive] = useState(0);
@@ -90,7 +101,7 @@ export default function PortfolioSection({ onSelectProject }: PortfolioSectionPr
                   key={cat}
                   type="button"
                   onClick={() => handleFilter(cat)}
-                  className={`max-lg:tap-hit text-[11px] font-mono uppercase tracking-[0.18em] transition-colors duration-300 cursor-pointer ${
+                  className={`max-lg:tap-hit relative text-[11px] font-mono uppercase tracking-[0.18em] transition-colors duration-300 cursor-pointer ${
                     isActiveCat ? 'text-[#111111]' : 'text-[#8A8580] hover:text-[#111111]'
                   }`}
                 >
@@ -138,35 +149,109 @@ export default function PortfolioSection({ onSelectProject }: PortfolioSectionPr
             </motion.div>
           </div>
 
-          {/* RIGHT — PROJECT INDEX (records) + ACTIVE PROJECT DATA */}
-          <div className="lg:col-span-7 flex flex-col lg:flex-row gap-10 lg:gap-12">
-            {/* Active project data — first on mobile, right on desktop */}
-            <div className="order-1 lg:order-2 w-full lg:w-[40%] lg:shrink-0 min-w-0">
+          {/* RIGHT — COMPACT INDEX + ACTIVE RECORD SHEET */}
+          <div className="lg:col-span-7 flex flex-col lg:flex-row gap-10 lg:gap-14">
+            {/* ACTIVE RECORD SHEET — first on mobile, right on desktop */}
+            <div className="order-1 lg:order-2 w-full lg:w-[42%] lg:shrink-0 min-w-0">
               <div className="border-t border-black/10 pt-5">
-                <span className="font-mono text-[10px] uppercase tracking-[0.22em] text-[#8A8580]">
-                  {current ? `Active Record — ${paddedIndex}` : 'Active Record'}
-                </span>
+                <div className="flex items-center justify-between gap-4">
+                  <span className="inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.22em] text-[#8A8580]">
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="absolute inline-flex h-full w-full rounded-full bg-[#EDA81C] opacity-60 animate-ping" />
+                      <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#EDA81C]" />
+                    </span>
+                    {current ? `Active Record — ${paddedIndex}` : 'Active Record'}
+                  </span>
+                  {current && (
+                    <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#8A8580]">
+                      {current.year}
+                    </span>
+                  )}
+                </div>
 
                 <AnimatePresence mode="wait">
                   {current && (
-                    <motion.div
+                    <motion.article
                       key={current.id}
-                      initial={reducedMotion ? { opacity: 0 } : { opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={reducedMotion ? { opacity: 0 } : { opacity: 0, y: -6 }}
-                      transition={{ duration: reducedMotion ? 0 : 0.35, ease: EASE }}
+                      variants={recordWrapper}
+                      initial="hidden"
+                      animate="show"
+                      exit={{
+                        opacity: 0,
+                        y: -8,
+                        transition: { duration: reducedMotion ? 0 : 0.25, ease: 'easeIn' },
+                      }}
                     >
-                      <h3 className="mt-4 font-sans text-[1.35rem] lg:text-2xl font-bold tracking-[-0.02em] text-[#111111] leading-[1.15]">
+                      <h3 className="mt-5 font-sans text-[1.35rem] lg:text-2xl font-bold tracking-[-0.02em] text-[#111111] leading-[1.15]">
                         {current.title}
                       </h3>
-                      <p className="mt-3 font-sans text-[15px] leading-[1.7] text-[#555555]">
+
+                      <motion.p
+                        variants={recordItem(reducedMotion)}
+                        className="mt-3 font-sans text-[15px] leading-[1.7] text-[#555555]"
+                      >
                         {current.summary}
-                      </p>
-                      <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.14em] text-[#111111]">
+                      </motion.p>
+
+                      <motion.p
+                        variants={recordItem(reducedMotion)}
+                        className="mt-4 font-mono text-[11px] uppercase tracking-[0.14em] text-[#111111]"
+                      >
                         <span className="text-[#EDA81C]">{paddedIndex}</span>
-                        <span className="text-[#8A8580]"> · {current.category} · {current.location}</span>
-                      </p>
-                      <div className="mt-6 pt-4 border-t border-black/10">
+                        <span className="text-[#8A8580]">
+                          {' '}· {current.category} · {current.location}
+                        </span>
+                      </motion.p>
+
+                      {/* Key metrics — archival stat sheet */}
+                      {current.keyStats.length > 0 && (
+                        <motion.div
+                          variants={recordItem(reducedMotion)}
+                          className="mt-6 border-t border-black/10"
+                        >
+                          <span className="mt-4 block font-mono text-[10px] uppercase tracking-[0.22em] text-[#8A8580]">
+                            Key Metrics
+                          </span>
+                          <dl className="mt-1">
+                            {current.keyStats.map((stat) => (
+                              <motion.div
+                                key={stat.label}
+                                variants={recordItem(reducedMotion)}
+                                className="flex items-baseline justify-between gap-4 py-2.5 border-b border-black/[0.07]"
+                              >
+                                <dt className="font-mono text-[10px] uppercase tracking-[0.18em] text-[#8A8580]">
+                                  {stat.label}
+                                </dt>
+                                <dd className="font-sans text-[15px] font-medium tracking-[-0.01em] text-[#111111] text-right">
+                                  {stat.value}
+                                </dd>
+                              </motion.div>
+                            ))}
+                          </dl>
+                        </motion.div>
+                      )}
+
+                      {/* Disciplines — tags */}
+                      {current.disciplines.length > 0 && (
+                        <motion.div
+                          variants={recordItem(reducedMotion)}
+                          className="mt-5 flex flex-wrap gap-2"
+                        >
+                          {current.disciplines.map((d) => (
+                            <span
+                              key={d}
+                              className="rounded-full border border-black/10 px-2.5 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-[#555555]"
+                            >
+                              {d}
+                            </span>
+                          ))}
+                        </motion.div>
+                      )}
+
+                      <motion.div
+                        variants={recordItem(reducedMotion)}
+                        className="mt-6 pt-4 border-t border-black/10"
+                      >
                         <button
                           type="button"
                           onClick={() => onSelectProject(current)}
@@ -175,14 +260,14 @@ export default function PortfolioSection({ onSelectProject }: PortfolioSectionPr
                           Inspect full dossier
                           <ArrowUpRight className="w-4 h-4 text-[#EDA81C] transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                         </button>
-                      </div>
-                    </motion.div>
+                      </motion.div>
+                    </motion.article>
                   )}
                 </AnimatePresence>
               </div>
             </div>
 
-            {/* PROJECT INDEX — project records as primary navigation */}
+            {/* PROJECT INDEX — compact records as primary navigation */}
             <div
               ref={indexRef}
               className="order-2 lg:order-1 flex-1 min-w-0 border-t border-black/10"
@@ -224,41 +309,43 @@ export default function PortfolioSection({ onSelectProject }: PortfolioSectionPr
                       onClick={() => onSelectProject(project)}
                       aria-label={`Open dossier — ${project.title}`}
                       aria-current={isActive ? 'true' : undefined}
-                      className="group w-full text-left cursor-pointer border-b border-black/10 outline-none"
+                      className={`group relative w-full text-left cursor-pointer border-b border-black/10 outline-none transition-colors duration-500 ${
+                        isActive ? 'border-[#EDA81C]/40' : 'hover:border-black/30'
+                      }`}
                     >
+                      {/* Gold gauge tab slides out for the active record */}
                       <span
-                        className={`flex items-start gap-6 py-5 transition-transform duration-300 ease-out ${
-                          isActive ? 'translate-x-2' : 'group-hover:translate-x-2'
+                        className={`absolute left-0 inset-y-0 w-[3px] bg-[#EDA81C] origin-top transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                          isActive ? 'scale-y-100' : 'scale-y-0 group-hover:scale-y-100'
+                        }`}
+                      />
+                      <span
+                        className={`flex items-center gap-4 pl-5 py-[18px] transition-transform duration-300 ease-out ${
+                          isActive ? 'translate-x-1.5' : 'group-hover:translate-x-1.5'
                         }`}
                       >
                         <span
-                          className={`font-mono text-[13px] tracking-[0.15em] pt-1 transition-colors duration-300 ${
-                            isActive ? 'text-[#111111]' : 'text-[#888888] group-hover:text-[#111111]'
+                          className={`font-mono text-[12px] tracking-[0.15em] transition-colors duration-300 ${
+                            isActive
+                              ? 'text-[#EDA81C]'
+                              : 'text-[#888888] group-hover:text-[#111111]'
                           }`}
                         >
-                          {isActive ? <span className="select-none">•&nbsp;&nbsp;</span> : null}
                           {String(i + 1).padStart(2, '0')}
                         </span>
-                        <span className="flex-1 flex flex-col gap-1">
-                          <span className="flex items-start justify-between gap-4">
-                            <span className="font-sans text-[16px] sm:text-lg font-bold leading-snug tracking-[-0.01em] text-[#111111]">
-                              {project.title}
-                            </span>
-                            <ArrowUpRight
-                              className={`w-4 h-4 mt-1 shrink-0 transition-all duration-300 ${
-                                isActive
-                                  ? 'text-[#EDA81C] opacity-100'
-                                  : 'text-[#888888] opacity-0 group-hover:opacity-100 group-hover:text-[#EDA81C]'
-                              }`}
-                            />
-                          </span>
-                          <span className="font-sans text-[14px] font-normal leading-[1.4] text-[#666666]">
-                            {project.summary}
-                          </span>
-                          <span className="mt-1 font-mono text-[11px] uppercase tracking-[0.14em] text-[#8A8580]">
-                            {project.category} — {project.location}
-                          </span>
+                        <span className="flex-1 min-w-0 font-sans text-[15px] sm:text-[17px] font-bold leading-snug tracking-[-0.01em] text-[#111111]">
+                          {project.title}
                         </span>
+                        <span className="shrink-0 font-mono text-[11px] uppercase tracking-[0.16em] text-[#8A8580]">
+                          {project.year}
+                        </span>
+                        <ArrowUpRight
+                          className={`w-4 h-4 shrink-0 transition-all duration-300 ${
+                            isActive
+                              ? 'text-[#EDA81C] opacity-100'
+                              : 'text-[#888888] opacity-0 group-hover:opacity-100 group-hover:text-[#EDA81C]'
+                          }`}
+                        />
                       </span>
                     </button>
                   </motion.div>
@@ -281,7 +368,7 @@ export default function PortfolioSection({ onSelectProject }: PortfolioSectionPr
             id="view-all-projects-btn"
             onClick={() => {
               handleFilter('All');
-              onSelectProject(PROJECTS_DATA[0]);
+              onSelectProject(filteredProjects[0] ?? PROJECTS_DATA[0]);
             }}
             className="group inline-flex items-center gap-3 text-[11px] font-mono uppercase tracking-[0.25em] text-[#111111] hover:text-[#EDA81C] transition-colors border-b border-[#111111] hover:border-[#EDA81C] py-2 cursor-pointer"
           >

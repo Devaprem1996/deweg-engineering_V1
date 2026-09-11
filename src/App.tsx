@@ -204,6 +204,8 @@ export default function App() {
       <ProjectModal
         project={selectedProject}
         onClose={() => setSelectedProject(null)}
+        onChangeProject={setSelectedProject}
+        onNavigateToContact={() => handleNavigate('home', '#contact')}
       />
 
       <ServiceModal

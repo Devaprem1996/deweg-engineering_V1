@@ -615,7 +615,7 @@ export const PROJECTS_DATA: Project[] = [
     year: '2024',
     location: 'Urban Financial District',
     client: 'Skyline Capital Developments',
-    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1200&q=85',
+    image: '/images/commercial-diagrid-tower.webp',
     summary: '38-story composite diagrid tower balancing structural transparency with wind-vortex shedding aerodynamic stability.',
     fullDescription: 'Deweg engineered the hybrid steel-concrete central core and exterior structural diagrid. Non-linear time history dynamic analysis and wind tunnel data informed tuned mass damping and high-efficiency lateral stiffness.',
     keyStats: [
@@ -632,7 +632,7 @@ export const PROJECTS_DATA: Project[] = [
     year: '2023',
     location: 'Tech Corridor, South India',
     client: 'Vertex Technologies',
-    image: 'https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=1200&q=85',
+    image: '/images/cleanroom-facility.webp',
     summary: 'Integrated MEP design featuring ISO Class 5 cleanrooms, high-efficiency chiller plants, and automated energy management.',
     fullDescription: 'Addressing demanding thermal and air filtration requirements, Deweg created an end-to-end digital twin coordinating complex HVAC duct runs, gas piping, and clean electrical distributions without inter-service clashes.',
     keyStats: [
