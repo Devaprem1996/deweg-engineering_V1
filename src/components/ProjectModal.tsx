@@ -111,7 +111,8 @@ export default function ProjectModal({
     <AnimatePresence>
       <motion.div
         key="project-dossier"
-        className="fixed inset-0 z-[11000] overflow-y-auto overscroll-contain"
+        data-lenis-prevent
+        className="fixed inset-0 z-[11000] overflow-y-auto"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
