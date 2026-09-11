@@ -108,22 +108,30 @@ export default function ProjectModal({
   return (
     <AnimatePresence>
       {project && (
-        <>
+        // Fixed overlay shell: centers the panel and scrolls on short viewports.
+        <motion.div
+          key="project-dossier"
+          role="presentation"
+          className="fixed inset-0 z-[11000] flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+        >
           {/* Warm blurred backdrop */}
-          <motion.div
-            key="backdrop"
+          <motion.button
+            type="button"
+            aria-label="Close dossier"
+            onClick={onClose}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.35, ease: 'easeOut' }}
-            onClick={onClose}
-            aria-hidden="true"
-            className="fixed inset-0 bg-[#292524]/45 backdrop-blur-sm"
+            className="absolute inset-0 w-full h-full bg-[#292524]/45 cursor-default"
           />
 
           {/* Editorial broadsheet panel */}
           <motion.div
-            key="panel"
             ref={panelRef}
             tabIndex={-1}
             role="dialog"
@@ -157,8 +165,8 @@ export default function ProjectModal({
             </div>
 
             {/* Scrollable body — between pinned header and footer */}
-            <div className="flex-1 overflow-y-auto">
-              <AnimatePresence mode="wait" initial={false}>
+            <div className="flex-1 min-h-0 overflow-y-auto">
+              <AnimatePresence mode="wait">
                 <motion.div
                   key={project.id}
                   initial={{ opacity: 0 }}
@@ -168,21 +176,21 @@ export default function ProjectModal({
                   className="p-6 sm:p-10 lg:p-12 space-y-8"
                 >
                   {/* Eyebrow */}
-                  <p
+                  <motion.p
                     {...fadeUp(0.05)}
                     className="text-[11px] font-mono uppercase tracking-[0.28em] text-[#8A8580]"
                   >
                     {project.category}
-                  </p>
+                  </motion.p>
 
                   {/* Title */}
-                  <h2
+                  <motion.h2
                     {...fadeUp(0.1)}
                     id="project-modal-title"
                     className="font-sans font-medium text-[#111111] tracking-[-0.02em] leading-[1.15] text-[clamp(1.75rem,3vw,2.5rem)]"
                   >
                     {project.title}
-                  </h2>
+                  </motion.h2>
 
                   {/* Mono metadata */}
                   <motion.div
@@ -205,7 +213,7 @@ export default function ProjectModal({
                       src={project.image}
                       alt={project.title}
                       className="w-full h-full object-cover"
-                      loading="eager"
+                      loading="lazy"
                       decoding="async"
                       referrerPolicy="no-referrer"
                     />
@@ -281,7 +289,7 @@ export default function ProjectModal({
                     type="button"
                     onClick={() => step(-1)}
                     aria-label="Previous record"
-                    className="group inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-[#555555] hover:text-[#111111] transition-colors px-2 py-1.5 cursor-pointer max-lg:tap-hit"
+                    className="group inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-[#555555] hover:text-[#111111] transition-colors px-2 py-1.5 cursor-pointer"
                   >
                     <ArrowLeft className="w-3.5 h-3.5 text-[#8A8580] transition-colors duration-300 group-hover:text-[#EDA81C] group-hover:-translate-x-0.5" />
                     <span>Prev record</span>
@@ -290,7 +298,7 @@ export default function ProjectModal({
                     type="button"
                     onClick={() => step(1)}
                     aria-label="Next record"
-                    className="group inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-[#555555] hover:text-[#111111] transition-colors px-2 py-1.5 cursor-pointer max-lg:tap-hit"
+                    className="group inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-[#555555] hover:text-[#111111] transition-colors px-2 py-1.5 cursor-pointer"
                   >
                     <span>Next record</span>
                     <ArrowRight className="w-3.5 h-3.5 text-[#8A8580] transition-colors duration-300 group-hover:text-[#EDA81C] group-hover:translate-x-0.5" />
@@ -321,7 +329,7 @@ export default function ProjectModal({
               </div>
             </div>
           </motion.div>
-        </>
+        </motion.div>
       )}
     </AnimatePresence>
   );
