@@ -10,10 +10,10 @@ import {
 } from 'lucide-react';
 import {
   EXPERTISE_DOMAINS,
-  EXPERTISE_HERO_ASSET,
   ExpertiseDomain
 } from '../data/expertiseData';
 import { COMPANY_DETAILS } from '../data/engineeringData';
+import ExpertiseHero from './ExpertiseHero';
 
 interface ExpertisePageProps {
   onNavigateHome: () => void;
@@ -27,13 +27,6 @@ const HAIRLINE = '#DDD9CE';
 const EASE = [0.16, 1, 0.3, 1] as const;
 
 const pad = (n: number) => String(n).padStart(2, '0');
-
-const metrics = [
-  { value: '7', label: 'Core Disciplines' },
-  { value: 'LOD 500', label: 'BIM Precision' },
-  { value: '100%', label: 'Code Compliant' },
-  { value: 'ISO', label: 'Certified QA' }
-];
 
 const sideMenuLabels: Record<string, string> = {
   'project-management': 'Project Management',
@@ -310,115 +303,11 @@ export default function ExpertisePage({
         </div>
       </div>
 
-      {/* ─── Hero ─── */}
-      <section className="max-w-[1600px] mx-auto px-[7vw] pt-16 lg:pt-20 pb-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-          <div className="lg:col-span-7">
-            <div className="flex items-center gap-4">
-              <motion.span
-                initial={{ scaleX: 0 }}
-                whileInView={{ scaleX: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.9, ease: EASE }}
-                className="block h-px w-8 bg-[#DDD9CE] origin-left"
-              />
-              <motion.span
-                initial={{ opacity: 0, y: 8 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.7, ease: 'easeOut' }}
-                className="font-mono text-[11px] uppercase tracking-[0.28em] text-[#8A877E]"
-              >
-                Official Practice Reference
-              </motion.span>
-            </div>
-
-            <h1 className="mt-6 font-sans font-medium text-[#141412] tracking-[-0.03em] leading-[1.02] text-[clamp(3rem,5.5vw,5.5rem)]">
-              {['Domain We Expertise'].map((w) => (
-                <span key={w}>
-                  {w.split(' ').map((word, i) => (
-                    <span key={`${word}-${i}`} className="inline-block overflow-hidden align-top">
-                      <motion.span
-                        initial={{ y: '100%', opacity: 0 }}
-                        whileInView={{ y: '0%', opacity: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.7, delay: i * 0.08, ease: EASE }}
-                        className="inline-block"
-                      >
-                        {word}&nbsp;
-                      </motion.span>
-                    </span>
-                  ))}
-                </span>
-              ))}
-            </h1>
-
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.7, delay: 0.25, ease: EASE }}
-              className="mt-6 max-w-[620px] font-sans text-[1.125rem] leading-[1.6] text-[#5C5A53]"
-            >
-              From concept to construction-level reality. Detailed engineering,
-              high-fidelity BIM coordination, structural analysis, offshore platforms, and
-              proprietary IT automations engineered for zero field rework.
-            </motion.p>
-          </div>
-
-          {/* Hero image + caption below frame */}
-          <div className="lg:col-span-5">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8, delay: 0.15, ease: EASE }}
-            >
-              <div className="rounded-[2px] overflow-hidden border border-[#DDD9CE] bg-[#EBE8DF]">
-                <img
-                  src={EXPERTISE_HERO_ASSET.url}
-                  alt={EXPERTISE_HERO_ASSET.alt}
-                  className="w-full aspect-[4/3] object-cover"
-                  loading="eager"
-                  decoding="async"
-                  referrerPolicy="no-referrer"
-                />
-              </div>
-              <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.14em] text-[#8A877E]">
-                [ FIG 01 — DEWEG REFERENCE PORTFOLIO ]
-              </p>
-              <p className="mt-1 font-sans text-[13px] text-[#5C5A53]">
-                Verified CAD drawings, 3D structural skeletons, and live field simulations.
-              </p>
-            </motion.div>
-          </div>
-        </div>
-
-        {/* Metrics strip — hairline columns, no card */}
-        <div className="mt-12 border-y border-[#DDD9CE]">
-          <div className="grid grid-cols-2 lg:grid-cols-4">
-            {metrics.map((m, i) => (
-              <motion.div
-                key={m.label}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: i * 0.06, ease: EASE }}
-                className={`px-7 py-8 ${i > 0 ? 'lg:border-l border-[#DDD9CE]' : ''} ${
-                  i % 2 === 1 ? 'border-l border-[#DDD9CE]' : ''
-                } ${i >= 2 ? 'border-t border-[#DDD9CE] lg:border-t-0' : ''}`}
-              >
-                <span className="block font-sans font-medium text-[#141412] tracking-[-0.02em] text-[clamp(2.5rem,3.8vw,3.5rem)] leading-none">
-                  {m.value}
-                </span>
-                <span className="mt-2 block font-mono text-[11px] uppercase tracking-[0.12em] text-[#8A877E]">
-                  {m.label}
-                </span>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ─── Hero — full viewport, image-free, GSAP + Motion ─── */}
+      <ExpertiseHero
+        onNavigateToContact={onNavigateToContact}
+        onEnterIndex={() => selectTab('project-management')}
+      />
 
       {/* ─── Mobile index strip (< 1024px) — pins under navbar ─── */}
       <nav className="sticky top-[72px] z-30 bg-[#F5F4EE] border-y border-[#DDD9CE] lg:hidden">
