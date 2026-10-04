@@ -1,8 +1,6 @@
-﻿import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform, useMotionValueEvent, type MotionValue } from 'motion/react';
-
-const TOTAL_FRAMES = 90;
-const FRAME_PATH = '/frames/frame_';
+import { AssemblyScene, type AssemblyViewMode, type AssemblyHotspot } from '../lib/three/AssemblyScene';
 
 type MilestoneChapter = {
   kind: 'milestone';
@@ -17,10 +15,6 @@ type Chapter =
   | { kind: 'hero' }
   | (MilestoneChapter & { range: [number, number] })
   | { kind: 'cta'; range: [number, number] };
-
-function framePath(index: number): string {
-  return `${FRAME_PATH}${String(index + 1).padStart(4, '0')}.webp`;
-}
 
 /**
  * Each chapter owns a scroll range. Ranges DO NOT overlap, so at any
@@ -116,14 +110,18 @@ const HERO_END = 0.085;
 export default function ScrollytellingHero() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const imagesRef = useRef<HTMLImageElement[]>([]);
-  const lastFrameRef = useRef(-1);
+  const sceneRef = useRef<AssemblyScene | null>(null);
   const lastChapterRef = useRef(0);
   const lastProgressRef = useRef(0);
-  const [loadedCount, setLoadedCount] = useState(0);
   const [ready, setReady] = useState(false);
-  const [drawFrame0, setDrawFrame0] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+
+  // Creative Enhancements: Shading mode, hotspots, and 360 drag orbit
+  const [viewMode, setViewMode] = useState<AssemblyViewMode>('solid');
+  const [hotspots, setHotspots] = useState<AssemblyHotspot[]>([]);
+  const [activeHotspot, setActiveHotspot] = useState<string | null>(null);
+  const [isDraggingCanvas, setIsDraggingCanvas] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   // Viewfinder HUD readouts - updated via textContent in the scroll handler
   // to avoid re-renders at 60fps.
@@ -135,97 +133,8 @@ export default function ScrollytellingHero() {
     offset: ['start start', 'end end'],
   });
 
-  // Hero "transfer": centered full-width headline crossfades into the left column
-  // while the model slides right - all driven by the first HERO_END of the scroll.
-  const heroProgress = useTransform(scrollYProgress, [0, HERO_END], [0, 1]);
-  const heroCenterOpacity = useTransform(heroProgress, [0, 0.5], [1, 0]);
-  const heroCenterX = useTransform(heroProgress, [0, 1], [0, -70]);
-  const heroCenterScale = useTransform(heroProgress, [0, 1], [1, 1.05]);
-  const heroLeftOpacity = useTransform(heroProgress, [0.25, 0.75], [0, 1]);
-  const heroLeftX = useTransform(heroProgress, [0, 1], [46, 0]);
-
-  // Paint one frame, contain-fitted into a model zone on the right two-thirds
-  // (desktop) so the left column stays free for text - text never covers the model.
-  // A slow zoom applied across the journey adds a subtle "camera breathe".
-  const drawFrame = (frameIndex: number, progress = 0) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const cssW = rect.width;
-    const cssH = rect.height;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-
-    if (canvas.width !== Math.round(cssW * dpr) || canvas.height !== Math.round(cssH * dpr)) {
-      canvas.width = Math.round(cssW * dpr);
-      canvas.height = Math.round(cssH * dpr);
-    }
-
-    const img = imagesRef.current[frameIndex];
-    if (!img || !img.complete || !img.naturalWidth) return;
-
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.clearRect(0, 0, cssW, cssH);
-
-    const isDesktop = cssW >= 768;
-    // Hero transfer: at progress 0 the model is large, centered and covering the
-    // width; by hero end (p >= HERO_END) it has slid right and settled into the
-    // right-side column. The lift-in (y push) makes it feel like the bridge rises
-    // into place as the user scrolls.
-    let zoneX: number;
-    let zoneW: number;
-    let zoneH: number;
-    if (isDesktop) {
-      const hp = Math.min(1, progress / HERO_END);
-      const e = hp * hp * (3 - 2 * hp); // smoothstep
-      const lerp = (from: number, to: number) => from + (to - from) * e;
-      zoneX = lerp(cssW * 0.125, cssW * 0.44);
-      zoneW = lerp(cssW * 0.75, cssW * 0.56);
-      zoneH = lerp(cssH * 0.75, cssH * 0.78);
-    } else {
-      zoneX = cssW * 0.125;
-      zoneW = cssW * 0.75;
-      zoneH = cssH * 0.75;
-    }
-    const zoneY = (cssH - zoneH) / 2;
-
-    const iw = img.naturalWidth;
-    const ih = img.naturalHeight;
-    const baseScale = Math.min(zoneW / iw, zoneH / ih);
-    // Slow push-in, ~4% across the full journey - barely perceptible, adds depth.
-    const zoom = 1 + progress * 0.04;
-    const w = iw * baseScale * zoom;
-    const h = ih * baseScale * zoom;
-    const x = zoneX + (zoneW - w) / 2;
-    // Model starts slightly lower and rises into place during the hero transfer.
-    const liftIn = isDesktop ? (1 - Math.min(1, progress / HERO_END) ** 2) * cssH * 0.06 : 0;
-    const y = zoneY + (zoneH - h) / 2 - cssH * 0.02 + liftIn;
-
-    // Soft contact shadow on the drawing board beneath the model
-    const cx = x + w / 2;
-    const cy = y + h;
-    const shadow = ctx.createRadialGradient(cx, cy, 0, cx, cy, w * 0.45);
-    shadow.addColorStop(0, 'rgba(15, 23, 42, 0.13)');
-    shadow.addColorStop(1, 'rgba(15, 23, 42, 0)');
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.scale(1, 0.14);
-    ctx.beginPath();
-    ctx.arc(0, 0, w * 0.45, 0, Math.PI * 2);
-    ctx.fillStyle = shadow;
-    ctx.fill();
-    ctx.restore();
-
-    ctx.drawImage(img, x, y, w, h);
-  };
-
-  // Raw progress drives the scrub (Lenis already smooths the scroll itself).
+  // Raw progress drives the 3D WebGL assembly
   useMotionValueEvent(scrollYProgress, 'change', (latest) => {
-    // Which chapter is active? Ranges are exclusive and non-overlapping,
-    // so exactly one chapter owns a given scroll position. The last known
-    // chapter is kept across the silent reassembly gap (no chapter match).
     let active = lastChapterRef.current;
     if (latest < HERO_END) {
       active = 0;
@@ -242,7 +151,7 @@ export default function ScrollytellingHero() {
     if (active !== activeIndex) setActiveIndex(active);
     lastProgressRef.current = latest;
 
-    // Viewfinder HUD readouts update in place (no React re-render needed).
+    // Viewfinder HUD readouts update in place (no React re-render needed)
     if (percentRef.current) {
       percentRef.current.textContent = `${String(Math.round(latest * 100)).padStart(2, '0')}%`;
     }
@@ -253,67 +162,84 @@ export default function ScrollytellingHero() {
       frameRef.current.textContent = `${label} / 07`;
     }
 
-    // Which frame to paint? Linear mapping - one frame per scroll step.
-    const frameIndex = Math.min(
-      TOTAL_FRAMES - 1,
-      Math.max(0, Math.round(latest * (TOTAL_FRAMES - 1)))
-    );
-    if (frameIndex !== lastFrameRef.current) {
-      lastFrameRef.current = frameIndex;
-      drawFrame(frameIndex, latest);
+    // Pass scroll progress to Three.js AssemblyScene
+    if (sceneRef.current) {
+      const isMobile = window.innerWidth < 768;
+      sceneRef.current.updateProgress(latest, isMobile);
+      if (!isMobile) {
+        setHotspots(sceneRef.current.getHotspots());
+      }
     }
   });
 
-  // Preload all frames; first frame paints as soon as it arrives.
-  useEffect(() => {
-    let cancelled = false;
-    const images: HTMLImageElement[] = [];
+  // Switch shading view mode
+  const handleModeChange = (mode: AssemblyViewMode) => {
+    setViewMode(mode);
+    sceneRef.current?.setViewMode(mode);
+  };
 
-    for (let i = 0; i < TOTAL_FRAMES; i++) {
-      const img = new Image();
-      img.src = framePath(i);
-      img.fetchPriority = i < 5 ? 'high' : 'low';
-      images.push(img);
+  // Initialize Three.js Assembly Scene
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const isMobile = window.innerWidth < 768;
+    const scene = new AssemblyScene(canvas, { isMobile });
+    sceneRef.current = scene;
+
+    // Fade-in model surface
+    const timer = setTimeout(() => {
+      setReady(true);
+      scene.updateProgress(lastProgressRef.current, window.innerWidth < 768);
+      if (!isMobile) {
+        setHotspots(scene.getHotspots());
+      }
+    }, 60);
+
+    // Responsive resize handler
+    const handleResize = () => {
+      scene.resize();
+      scene.updateProgress(lastProgressRef.current, window.innerWidth < 768);
+      if (window.innerWidth >= 768) {
+        setHotspots(scene.getHotspots());
+      }
+    };
+    window.addEventListener('resize', handleResize);
+
+    // Mouse tilt interaction on desktop
+    const handlePointerMove = (e: MouseEvent) => {
+      if (window.innerWidth < 768) return;
+      const nx = (e.clientX / window.innerWidth) * 2 - 1;
+      const ny = (e.clientY / window.innerHeight) * 2 - 1;
+      scene.setPointer(nx, ny);
+    };
+    window.addEventListener('mousemove', handlePointerMove, { passive: true });
+
+    // IntersectionObserver to sleep WebGL loop when section is off-screen
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          scene.start();
+        } else {
+          scene.pause();
+        }
+      },
+      { threshold: 0.05 }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
     }
 
-    imagesRef.current = images;
-
-    let loaded = 0;
-    const onLoad = () => {
-      if (cancelled) return;
-      loaded += 1;
-      setLoadedCount(loaded);
-      if (loaded === 1) setDrawFrame0(true);
-      if (loaded >= TOTAL_FRAMES) setReady(true);
-    };
-
-    images.forEach((img) => {
-      if (img.complete) onLoad();
-      else {
-        img.onload = onLoad;
-        img.onerror = onLoad;
-      }
-    });
-
     return () => {
-      cancelled = true;
+      clearTimeout(timer);
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('mousemove', handlePointerMove);
+      observer.disconnect();
+      scene.dispose();
+      sceneRef.current = null;
     };
   }, []);
-
-  // Paint frame 0 once available (and on resize).
-  useEffect(() => {
-    if (!drawFrame0) return;
-    drawFrame(0);
-  }, [drawFrame0]);
-
-  useEffect(() => {
-    const onResize = () => {
-      if (lastFrameRef.current >= 0) drawFrame(lastFrameRef.current, lastProgressRef.current);
-      else if (drawFrame0) drawFrame(0, lastProgressRef.current);
-    };
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, [drawFrame0]);
 
   const activeChapter: Chapter | undefined = CHAPTERS[activeIndex];
   const activeMilestone =
@@ -334,10 +260,31 @@ export default function ScrollytellingHero() {
 
       {/* Sticky viewport */}
       <div className="sticky top-0 h-screen w-full overflow-hidden">
-        {/* Frame paint surface - fades in with the assembled model */}
+        {/* Frame paint surface - with interactive 360 drag orbit */}
         <canvas
           ref={canvasRef}
-          className="absolute inset-0 w-full h-full transition-opacity duration-1000 ease-out"
+          onPointerDown={(e) => {
+            if (window.innerWidth < 768) return;
+            setIsDraggingCanvas(true);
+            setHasInteracted(true);
+            sceneRef.current?.startDrag(e.clientX, e.clientY);
+          }}
+          onPointerMove={(e) => {
+            if (window.innerWidth < 768 || !isDraggingCanvas) return;
+            sceneRef.current?.moveDrag(e.clientX, e.clientY);
+            setHotspots(sceneRef.current?.getHotspots() || []);
+          }}
+          onPointerUp={() => {
+            setIsDraggingCanvas(false);
+            sceneRef.current?.endDrag();
+          }}
+          onPointerLeave={() => {
+            setIsDraggingCanvas(false);
+            sceneRef.current?.endDrag();
+          }}
+          className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-out ${
+            isDraggingCanvas ? 'cursor-grabbing' : 'cursor-grab'
+          }`}
           style={{ opacity: ready ? 1 : 0 }}
         />
 
@@ -352,6 +299,39 @@ export default function ScrollytellingHero() {
           <span className="absolute bottom-0 right-0 w-5 h-5 border-b border-r border-[#0D9488]/40" />
         </div>
 
+        {/* Shading View Mode Switcher (Solid / X-Ray / CAD Wireframe) */}
+        <div className="absolute top-20 left-8 md:left-14 z-30 hidden md:flex items-center gap-1.5 p-1 bg-white/80 backdrop-blur-md rounded-md border border-[#0D9488]/25 shadow-sm pointer-events-auto">
+          <span className="font-mono text-[9px] uppercase tracking-wider text-[#64748B] px-2 py-0.5 font-bold">
+            VIEW:
+          </span>
+          {(['solid', 'xray', 'cad'] as AssemblyViewMode[]).map((mode) => (
+            <button
+              key={mode}
+              onClick={() => handleModeChange(mode)}
+              className={`font-mono text-[10px] tracking-wider uppercase px-2.5 py-1 rounded transition-all cursor-pointer ${
+                viewMode === mode
+                  ? 'bg-[#0D9488] text-white font-bold shadow-xs'
+                  : 'text-[#0F172A]/70 hover:text-[#0D9488] hover:bg-[#0D9488]/10'
+              }`}
+            >
+              {mode === 'solid' ? 'Solid PBR' : mode === 'xray' ? 'X-Ray' : 'CAD Wire'}
+            </button>
+          ))}
+        </div>
+
+        {/* 360 Drag Orbit Subtle Hint */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 pointer-events-none hidden md:block">
+          <motion.div
+            animate={{ opacity: hasInteracted ? 0 : [0.4, 0.9, 0.4] }}
+            transition={{ repeat: Infinity, duration: 3 }}
+            className="flex items-center gap-2 px-3 py-1 bg-white/70 backdrop-blur-md border border-[#0D9488]/20 rounded-full font-mono text-[9px] tracking-[0.2em] text-[#0F172A]/60 uppercase shadow-2xs"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-[#0D9488] animate-ping" />
+            <span>DRAG 360° TO INSPECT ASSEMBLY</span>
+          </motion.div>
+        </div>
+
+        {/* Viewfinder Telemetry Readouts */}
         <div className="absolute bottom-8 left-10 md:left-14 z-20 pointer-events-none hidden md:block">
           <div className="flex items-center gap-3 font-mono text-[10px] tracking-[0.24em] text-[#0F172A]/55">
             <span className="w-8 h-px bg-[#0D9488]/50" />
@@ -384,6 +364,66 @@ export default function ScrollytellingHero() {
           )}
         </AnimatePresence>
 
+        {/* 3D Component Hotspots pinned to 3D Coordinates */}
+        {hotspots.map((spot) => (
+          spot.visible && (
+            <div
+              key={spot.id}
+              className="absolute z-30 pointer-events-auto transition-transform duration-75 hidden md:block"
+              style={{
+                left: `${spot.x}%`,
+                top: `${spot.y}%`,
+                transform: 'translate(-50%, -50%)',
+              }}
+            >
+              <div className="group relative">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveHotspot(activeHotspot === spot.id ? null : spot.id);
+                  }}
+                  className="relative flex items-center justify-center w-6 h-6 rounded-full bg-white/90 border border-[#0D9488] shadow-md hover:scale-115 transition-transform cursor-pointer"
+                >
+                  <span className="w-2 h-2 rounded-full bg-[#0D9488] animate-pulse" />
+                </button>
+
+                {/* Hotspot Floating Editorial Card */}
+                <div
+                  className={`absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-64 p-3 bg-white/95 backdrop-blur-lg border border-[#0D9488]/30 rounded-lg shadow-xl transition-all duration-200 pointer-events-auto ${
+                    activeHotspot === spot.id
+                      ? 'opacity-100 scale-100 visible'
+                      : 'opacity-0 scale-95 invisible group-hover:opacity-100 group-hover:scale-100 group-hover:visible'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <span className="font-mono text-[9px] font-bold text-[#0D9488] uppercase tracking-wider">
+                      {spot.tag}
+                    </span>
+                    <span className="w-2 h-2 rounded-full bg-[#EDA81C]" />
+                  </div>
+                  <p className="font-sans font-bold text-[12px] text-[#0F172A] leading-tight">
+                    {spot.title}
+                  </p>
+                  <p className="font-sans text-[11px] text-[#64748B] leading-snug mt-0.5">
+                    {spot.subtitle}
+                  </p>
+                  <div className="mt-2 pt-2 border-t border-slate-100 flex flex-wrap gap-1">
+                    {spot.metrics.map((m) => (
+                      <span
+                        key={m}
+                        className="font-mono text-[8px] px-1.5 py-0.5 bg-slate-50 text-slate-600 rounded border border-slate-200"
+                      >
+                        {m}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )
+        ))}
+
         {/* Active chapter text - ONLY one of these renders at a time */}
         <AnimatePresence mode="wait">
           {activeChapter && (
@@ -396,15 +436,7 @@ export default function ScrollytellingHero() {
               className="absolute inset-0 z-40 pointer-events-none"
             >
               {activeChapter.kind === 'hero' && (
-                <HeroChapter
-                  ready={ready}
-                  centerStyle={{
-                    opacity: heroCenterOpacity,
-                    x: heroCenterX,
-                    scale: heroCenterScale,
-                  }}
-                  leftStyle={{ opacity: heroLeftOpacity, x: heroLeftX }}
-                />
+                <HeroChapter ready={ready} />
               )}
               {activeChapter.kind === 'milestone' && (
                 <MilestoneChapter chapter={activeChapter} />
@@ -416,11 +448,8 @@ export default function ScrollytellingHero() {
 
         {/* Loading progress hairline */}
         {!ready && (
-          <div className="absolute inset-x-0 bottom-0 z-50 h-[2px] bg-[#E2E8F0]/40">
-            <div
-              className="h-full bg-[#0D9488] transition-[width] duration-300"
-              style={{ width: `${(loadedCount / TOTAL_FRAMES) * 100}%` }}
-            />
+          <div className="absolute inset-x-0 bottom-0 z-50 h-[2px] bg-[#E2E8F0]/40 overflow-hidden">
+            <div className="h-full w-full bg-[#0D9488] animate-pulse" />
           </div>
         )}
       </div>
@@ -429,12 +458,6 @@ export default function ScrollytellingHero() {
 }
 
 /* ------------------------------------------------------------------ */
-
-type HeroScrollStyle = {
-  opacity: MotionValue<number>;
-  x: MotionValue<number>;
-  scale?: MotionValue<number>;
-};
 
 // Kinetic headline: each word rises from behind a mask with a staggered delay,
 // then a soft light sweeps across the finished line every few seconds.
@@ -546,81 +569,14 @@ function HeroEyebrow({ ready, center }: { ready: boolean; center?: boolean }) {
 
 function HeroChapter({
   ready,
-  centerStyle,
-  leftStyle,
 }: {
   ready: boolean;
-  centerStyle: HeroScrollStyle;
-  leftStyle: HeroScrollStyle;
 }) {
   return (
     <div className="absolute inset-0">
-      {/* CENTER INTRO (desktop) - full-width, centered on load; crossfades out as you scroll */}
-      <motion.div
-        style={{ opacity: centerStyle.opacity, x: centerStyle.x, scale: centerStyle.scale }}
-        className="absolute inset-0 hidden md:flex items-center justify-center"
-      >
-        {/* Legibility scrim behind the centered headline */}
-        <div className="absolute -inset-10 bg-[#F6F8F7]/65 blur-2xl pointer-events-none" />
-
-        {/* Centered surveyor compass rings - slow counter-rotation adds the wow */}
-        <div className="pointer-events-none absolute inset-0 flex items-center justify-center" aria-hidden>
-          <motion.span
-            animate={{ rotate: 360 }}
-            transition={{ repeat: Infinity, duration: 90, ease: 'linear' }}
-            className="absolute w-[min(84vw,920px)] aspect-square rounded-full border border-dashed border-[#0D9488]/20"
-          />
-          <motion.span
-            animate={{ rotate: -360 }}
-            transition={{ repeat: Infinity, duration: 60, ease: 'linear' }}
-            className="absolute w-[min(60vw,660px)] aspect-square rounded-full border border-[#0D9488]/10"
-          />
-          <span className="absolute font-mono text-[10px] tracking-[0.5em] text-[#0D9488]/25">
-            N&nbsp;E&nbsp;W&nbsp;S&nbsp;S&nbsp;E
-          </span>
-        </div>
-
-        <div className="relative px-8 text-center max-w-[1200px]">
-          <HeroEyebrow ready={ready} center />
-          <KineticHeadline
-            ready={ready}
-            text="Engineering the Future Through Digital Precision."
-            accentIndexes={[4, 5]}
-            className="font-display font-black text-[#0F172A] leading-[0.96] tracking-[-0.04em] text-[clamp(3rem,7vw,6.75rem)]"
-          />
-          <div className="mt-8 mx-auto max-w-[680px]">
-            <KineticLine
-              ready={ready}
-              text="Complex structural, industrial, and digital engineering, deconstructed to absolute certainty."
-              className="font-sans text-[clamp(1.15rem,1.7vw,1.45rem)] leading-[1.6] text-[#475569]"
-            />
-          </div>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={ready ? { opacity: 1 } : {}}
-            transition={{ delay: 1.5, duration: 0.7 }}
-            className="mt-10"
-          >
-            <span className="scrolly-scroll-cue scrolly-scroll-cue--center">
-              <span>Scroll to explore</span>
-              <span className="scrolly-scroll-line">
-                <motion.span
-                  animate={{ y: ['-100%', '100%'] }}
-                  transition={{ repeat: Infinity, duration: 2.2, ease: 'easeInOut' }}
-                  className="scrolly-scroll-dot"
-                />
-              </span>
-            </span>
-          </motion.div>
-        </div>
-      </motion.div>
-
-      {/* LEFT COLUMN (desktop) - slides/fades in as the user scrolls */}
-      <motion.div
-        style={{ opacity: leftStyle.opacity, x: leftStyle.x }}
-        className="absolute inset-0 hidden md:flex items-center"
-      >
-        <div className="w-full md:w-[56vw] max-w-[880px] px-6 md:px-10 lg:px-14">
+      {/* DESKTOP - Left Column layout perfectly aligned with milestones and unobstructed 3D stage */}
+      <div className="absolute inset-0 hidden md:flex items-center">
+        <div className="w-full md:w-[38vw] max-w-[560px] px-6 md:px-10 lg:px-14">
           <HeroEyebrow ready={ready} />
           <KineticHeadline
             ready={ready}
@@ -653,7 +609,7 @@ function HeroChapter({
             </span>
           </motion.div>
         </div>
-      </motion.div>
+      </div>
 
       {/* MOBILE - compact top layout with legibility scrim */}
       <div className="absolute inset-0 flex items-start md:hidden">
@@ -707,7 +663,7 @@ function MilestoneChapter({
       <div className="absolute inset-x-0 bottom-0 h-72 md:hidden bg-gradient-to-t from-[#F6F8F7]/95 via-[#F6F8F7]/55 to-transparent pointer-events-none" />
 
       <div className="absolute inset-x-0 bottom-[8vh] md:inset-0 md:flex md:items-center">
-        <div className="w-full md:w-[56vw] max-w-[880px] px-6 md:px-10 lg:px-14">
+        <div className="w-full md:w-[38vw] max-w-[560px] px-6 md:px-10 lg:px-14">
           <motion.div
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
@@ -749,7 +705,7 @@ function CtaChapter() {
       <div className="absolute inset-x-0 bottom-0 h-80 md:hidden bg-gradient-to-t from-[#F6F8F7]/95 via-[#F6F8F7]/55 to-transparent pointer-events-none" />
 
       <div className="absolute inset-y-0 flex items-end pb-[12vh] md:items-center md:pb-0">
-        <div className="w-full md:w-[56vw] max-w-[880px] px-6 md:px-10 lg:px-14">
+        <div className="w-full md:w-[38vw] max-w-[560px] px-6 md:px-10 lg:px-14">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
